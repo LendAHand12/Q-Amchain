@@ -2,6 +2,7 @@ import User from "../models/User.model.js";
 import Transaction from "../models/Transaction.model.js";
 import Commission from "../models/Commission.model.js";
 import BalanceHistory from "../models/BalanceHistory.model.js";
+import Package from "../models/Package.model.js";
 
 export const getProfile = async (req, res) => {
   try {
@@ -136,7 +137,7 @@ export const getDashboard = async (req, res) => {
       .populate("buyerId", "username")
       .populate("packageId", "name");
 
-    // Get purchased package name
+    // Get purchased package name (from transaction or assigned package)
     const purchasedPackage = await Transaction.findOne({
       userId: req.user._id,
       type: "payment",
@@ -144,6 +145,12 @@ export const getDashboard = async (req, res) => {
     })
       .populate("packageId", "name")
       .sort({ createdAt: -1 });
+
+    // Check if user has assigned package
+    let assignedPackage = null;
+    if (!purchasedPackage && user.assignedPackageId) {
+      assignedPackage = await Package.findById(user.assignedPackageId).select("name");
+    }
 
     res.json({
       success: true,
@@ -157,7 +164,8 @@ export const getDashboard = async (req, res) => {
         f2Earnings,
         recentTransactions,
         recentCommissions,
-        purchasedPackageName: purchasedPackage?.packageId?.name || null,
+        purchasedPackageName: purchasedPackage?.packageId?.name || assignedPackage?.name || null,
+        isPackageAssigned: user.isPackageAssigned || false,
       },
     });
   } catch (error) {

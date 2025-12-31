@@ -129,7 +129,14 @@ export default function AdminUsers() {
                     </TableCell>
                     <TableCell>
                       {user.purchasedPackageName ? (
-                        <Badge variant="outline">{user.purchasedPackageName}</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">{user.purchasedPackageName}</Badge>
+                          {user.isPackageAssigned && (
+                            <Badge variant="secondary" className="text-xs">
+                              Assigned
+                            </Badge>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-muted-foreground">No package</span>
                       )}

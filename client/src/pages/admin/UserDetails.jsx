@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatDate, formatDateTime } from "../../utils/dateFormat";
 import { formatAddress } from "../../utils/formatAddress";
 import { ArrowLeft, Edit, Save, X } from "lucide-react";
@@ -27,6 +29,10 @@ export default function UserDetails() {
   const [userDetails, setUserDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [showAssignPackageDialog, setShowAssignPackageDialog] = useState(false);
+  const [packages, setPackages] = useState([]);
+  const [selectedPackageId, setSelectedPackageId] = useState("");
+  const [isAssigning, setIsAssigning] = useState(false);
 
   const {
     register,
@@ -41,7 +47,17 @@ export default function UserDetails() {
     if (id) {
       fetchUserDetails(id);
     }
+    fetchPackages();
   }, [id]);
+
+  const fetchPackages = async () => {
+    try {
+      const response = await api.get("/packages");
+      setPackages(response.data.data || []);
+    } catch (error) {
+      console.error("Failed to load packages");
+    }
+  };
 
   const fetchUserDetails = async (userId) => {
     setLoading(true);
@@ -114,6 +130,28 @@ export default function UserDetails() {
       fetchUserDetails(id);
     } catch (error) {
       toast.error("Failed to unlock user");
+    }
+  };
+
+  const handleAssignPackage = async () => {
+    if (!selectedPackageId) {
+      toast.error("Please select a package");
+      return;
+    }
+
+    setIsAssigning(true);
+    try {
+      await api.put(`/admin/users/${id}/assign-package`, {
+        packageId: selectedPackageId,
+      });
+      toast.success("Package assigned successfully!");
+      setShowAssignPackageDialog(false);
+      setSelectedPackageId("");
+      fetchUserDetails(id);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to assign package");
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -373,12 +411,35 @@ export default function UserDetails() {
                     <p className="text-sm">{formatDate(userDetails.user.createdAt)}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Purchased Package</Label>
-                    {userDetails.purchasedPackage ? (
-                      <p className="font-semibold">{userDetails.purchasedPackage.name}</p>
-                    ) : (
-                      <p className="text-muted-foreground">No package purchased yet</p>
-                    )}
+                    <Label className="text-muted-foreground">Package</Label>
+                    <div className="flex items-center gap-2">
+                      {userDetails.purchasedPackage ? (
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold">{userDetails.purchasedPackage.name}</p>
+                          {userDetails.isPackageAssigned ? (
+                            <Badge variant="secondary" className="text-xs">
+                              Assigned by Admin
+                            </Badge>
+                          ) : (
+                            <Badge variant="default" className="text-xs">
+                              Purchased
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-muted-foreground">No package yet</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowAssignPackageDialog(true)}
+                            className="ml-2"
+                          >
+                            Assign Package
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
                   {userDetails.purchasedPackage && (
                     <>
@@ -676,6 +737,69 @@ export default function UserDetails() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Assign Package Dialog */}
+      <Dialog open={showAssignPackageDialog} onOpenChange={setShowAssignPackageDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign Package to User</DialogTitle>
+            <DialogDescription>
+              Select a package to assign to {userDetails?.user?.username}. This will create a free package assignment without payment.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="package">Select Package</Label>
+              <Select value={selectedPackageId} onValueChange={setSelectedPackageId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a package" />
+                </SelectTrigger>
+                <SelectContent>
+                  {packages.map((pkg) => (
+                    <SelectItem key={pkg._id} value={pkg._id}>
+                      {pkg.name} - {pkg.price} USDT
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedPackageId && (
+                <div className="mt-2 p-3 bg-muted rounded-md">
+                  {(() => {
+                    const selectedPkg = packages.find((p) => p._id === selectedPackageId);
+                    return selectedPkg ? (
+                      <div className="space-y-1 text-sm">
+                        <p className="font-medium">{selectedPkg.name}</p>
+                        {selectedPkg.description && (
+                          <p className="text-muted-foreground">{selectedPkg.description}</p>
+                        )}
+                        <p className="font-semibold">Price: {selectedPkg.price} USDT</p>
+                        <p className="text-xs text-muted-foreground">
+                          Commission F1: {selectedPkg.commissionLv1}% | F2: {selectedPkg.commissionLv2}%
+                        </p>
+                      </div>
+                    ) : null;
+                  })()}
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowAssignPackageDialog(false);
+                setSelectedPackageId("");
+              }}
+              disabled={isAssigning}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleAssignPackage} disabled={!selectedPackageId || isAssigning}>
+              {isAssigning ? "Assigning..." : "Assign Package"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

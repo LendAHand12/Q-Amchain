@@ -2,8 +2,10 @@ import User from "../models/User.model.js";
 import Transaction from "../models/Transaction.model.js";
 import Withdrawal from "../models/Withdrawal.model.js";
 import Commission from "../models/Commission.model.js";
+import Package from "../models/Package.model.js";
 import AdminLog from "../models/AdminLog.model.js";
 import Admin from "../models/Admin.model.js";
+import { calculateCommissions } from "../utils/commission.service.js";
 
 export const getAdminProfile = async (req, res) => {
   try {
@@ -55,7 +57,7 @@ export const getUsers = async (req, res) => {
 
     const total = await User.countDocuments(filter);
 
-    // Get purchased package names for each user
+    // Get purchased package names for each user (from transactions)
     const userIds = users.map((u) => u._id);
     const purchasedPackages = await Transaction.find({
       userId: { $in: userIds },
@@ -65,18 +67,40 @@ export const getUsers = async (req, res) => {
       .populate("packageId", "name")
       .select("userId packageId");
 
-    // Create a map of userId -> packageName
+    // Get assigned packages
+    const usersWithAssignedPackages = await User.find({
+      _id: { $in: userIds },
+      assignedPackageId: { $ne: null },
+    })
+      .populate("assignedPackageId", "name")
+      .select("_id assignedPackageId isPackageAssigned");
+
+    // Create a map of userId -> packageName and isAssigned
     const packageMap = {};
     purchasedPackages.forEach((tx) => {
       if (tx.packageId) {
-        packageMap[tx.userId.toString()] = tx.packageId.name;
+        packageMap[tx.userId.toString()] = {
+          name: tx.packageId.name,
+          isAssigned: false,
+        };
       }
     });
 
-    // Add purchasedPackageName to each user
+    usersWithAssignedPackages.forEach((user) => {
+      if (user.assignedPackageId) {
+        packageMap[user._id.toString()] = {
+          name: user.assignedPackageId.name,
+          isAssigned: true,
+        };
+      }
+    });
+
+    // Add purchasedPackageName and isPackageAssigned to each user
     const usersWithPackages = users.map((user) => {
       const userObj = user.toObject();
-      userObj.purchasedPackageName = packageMap[user._id.toString()] || null;
+      const packageInfo = packageMap[user._id.toString()];
+      userObj.purchasedPackageName = packageInfo?.name || null;
+      userObj.isPackageAssigned = packageInfo?.isAssigned || false;
       return userObj;
     });
 
@@ -172,7 +196,7 @@ export const getUserById = async (req, res) => {
     // Get withdrawals
     const withdrawals = await Withdrawal.find({ userId: user._id }).sort({ createdAt: -1 });
 
-    // Get purchased package (from completed payment transaction)
+    // Get purchased package (from completed payment transaction or assigned package)
     const purchasedPackage = await Transaction.findOne({
       userId: user._id,
       type: "payment",
@@ -180,6 +204,12 @@ export const getUserById = async (req, res) => {
     })
       .populate("packageId", "name price description")
       .sort({ createdAt: -1 });
+
+    // Check if user has assigned package (if no purchased package)
+    let assignedPackage = null;
+    if (!purchasedPackage && user.assignedPackageId) {
+      assignedPackage = await Package.findById(user.assignedPackageId).select("name price description");
+    }
 
     res.json({
       success: true,
@@ -192,7 +222,8 @@ export const getUserById = async (req, res) => {
           f2: f2WithPackages,
         },
         withdrawals,
-        purchasedPackage: purchasedPackage?.packageId || null,
+        purchasedPackage: purchasedPackage?.packageId || assignedPackage || null,
+        isPackageAssigned: user.isPackageAssigned || false,
       },
     });
   } catch (error) {
@@ -595,6 +626,82 @@ export const getLogs = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to get logs",
+    });
+  }
+};
+
+export const assignPackage = async (req, res) => {
+  try {
+    const { packageId } = req.body;
+    const userId = req.params.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Check if user already has a package (either purchased or assigned)
+    const hasPurchasedPackage = await Transaction.findOne({
+      userId: user._id,
+      type: "payment",
+      status: "completed",
+    });
+
+    if (hasPurchasedPackage || user.assignedPackageId) {
+      return res.status(400).json({
+        success: false,
+        message: "User already has a package. Each user can only have one package.",
+      });
+    }
+
+    // Validate package
+    const packageData = await Package.findById(packageId);
+    if (!packageData || packageData.status !== "active" || packageData.isDeleted) {
+      return res.status(404).json({
+        success: false,
+        message: "Package not found or inactive",
+      });
+    }
+
+    // Only update user - no transaction, no commission
+    user.assignedPackageId = packageData._id;
+    user.isPackageAssigned = true;
+    user.packagesPurchased = (user.packagesPurchased || 0) + 1;
+    await user.save();
+
+    // Log admin action
+    await AdminLog.create({
+      adminId: req.admin._id,
+      action: "assign_package",
+      entityType: "user",
+      entityId: user._id,
+      details: {
+        userId: user._id,
+        username: user.username,
+        packageId: packageData._id,
+        packageName: packageData.name,
+        packagePrice: packageData.price,
+        note: "Package assigned by admin (no payment, no commission)",
+      },
+      ipAddress: req.ip || req.connection.remoteAddress,
+    });
+
+    res.json({
+      success: true,
+      message: "Package assigned successfully",
+      data: {
+        package: packageData,
+        isAssigned: true,
+      },
+    });
+  } catch (error) {
+    console.error("Assign package error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to assign package",
     });
   }
 };

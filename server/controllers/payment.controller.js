@@ -11,17 +11,18 @@ export const verifyPayment = async (req, res) => {
   try {
     const { packageId, transactionHash } = req.body;
 
-    // Check if user has already purchased a package (only 1 package per user)
+    // Check if user has already purchased or been assigned a package (only 1 package per user)
+    const user = await User.findById(req.user._id);
     const existingPackage = await Transaction.findOne({
       userId: req.user._id,
       type: "payment",
       status: "completed",
     });
 
-    if (existingPackage) {
+    if (existingPackage || user.assignedPackageId) {
       return res.status(400).json({
         success: false,
-        message: "You have already purchased a package. Each user can only purchase one package.",
+        message: "You already have a package. Each user can only have one package.",
       });
     }
 

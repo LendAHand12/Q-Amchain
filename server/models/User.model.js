@@ -88,6 +88,15 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    assignedPackageId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Package",
+      default: null,
+    },
+    isPackageAssigned: {
+      type: Boolean,
+      default: false,
+    },
     walletAddress: {
       type: String,
       required: true,

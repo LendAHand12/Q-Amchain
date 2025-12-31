@@ -193,9 +193,16 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {stats?.purchasedPackageName ? (
-              <Badge variant="outline" className="text-lg px-3 py-1">
-                {stats.purchasedPackageName}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-lg px-3 py-1">
+                  {stats.purchasedPackageName}
+                </Badge>
+                {stats.isPackageAssigned && (
+                  <Badge variant="secondary" className="text-xs">
+                    Assigned by Admin
+                  </Badge>
+                )}
+              </div>
             ) : (
               <p className="text-muted-foreground">No package purchased yet</p>
             )}

@@ -54,7 +54,7 @@ export const register = async (req, res) => {
     // Note: refCode in database is lowercase, convert referrerCode to lowercase for lookup
     const parent = await User.findOne({
       refCode: referrerCode.trim().toLowerCase(),
-    });
+    }).select("assignedPackageId");
     if (!parent) {
       return res.status(400).json({
         success: false,
@@ -62,13 +62,15 @@ export const register = async (req, res) => {
       });
     }
 
-    // Check if parent has purchased a package
-    const parentHasPackage = await Transaction.findOne({
+    // Check if parent has purchased or been assigned a package
+    const parentHasPurchasedPackage = await Transaction.findOne({
       userId: parent._id,
       type: "payment",
       status: "completed",
     });
-    if (!parentHasPackage) {
+    const parentHasAssignedPackage = parent.assignedPackageId !== null && parent.assignedPackageId !== undefined;
+    
+    if (!parentHasPurchasedPackage && !parentHasAssignedPackage) {
       return res.status(400).json({
         success: false,
         message:
@@ -141,7 +143,7 @@ export const checkReferrerCode = async (req, res) => {
     // Find parent by referrerCode
     const parent = await User.findOne({
       refCode: referrerCode.trim().toLowerCase(),
-    });
+    }).select("assignedPackageId");
 
     if (!parent) {
       return res.json({
@@ -151,14 +153,15 @@ export const checkReferrerCode = async (req, res) => {
       });
     }
 
-    // Check if parent has purchased a package
-    const parentHasPackage = await Transaction.findOne({
+    // Check if parent has purchased or been assigned a package
+    const parentHasPurchasedPackage = await Transaction.findOne({
       userId: parent._id,
       type: "payment",
       status: "completed",
     });
+    const parentHasAssignedPackage = parent.assignedPackageId !== null && parent.assignedPackageId !== undefined;
 
-    if (!parentHasPackage) {
+    if (!parentHasPurchasedPackage && !parentHasAssignedPackage) {
       return res.json({
         success: true,
         isValid: false,
