@@ -1,6 +1,7 @@
 import Commission from '../models/Commission.model.js';
 import User from '../models/User.model.js';
 import Transaction from '../models/Transaction.model.js';
+import BalanceHistory from '../models/BalanceHistory.model.js';
 
 export const calculateCommissions = async (transaction, packageData) => {
   try {
@@ -29,9 +30,22 @@ export const calculateCommissions = async (transaction, packageData) => {
       await commission1.save();
 
       // Update parent balance
+      const balanceBefore = parent.walletBalance;
       parent.walletBalance += lv1Amount;
       parent.totalEarnings += lv1Amount;
       await parent.save();
+
+      // Save balance history
+      await BalanceHistory.create({
+        userId: parent._id,
+        type: 'commission',
+        amount: lv1Amount,
+        balanceBefore,
+        balanceAfter: parent.walletBalance,
+        description: `Level 1 commission from ${buyer.username} - ${packageData.name}`,
+        relatedId: commission1._id,
+        relatedType: 'commission'
+      });
 
       // Create transaction record
       await Transaction.create({
@@ -62,9 +76,23 @@ export const calculateCommissions = async (transaction, packageData) => {
           });
           await commission2.save();
 
+          // Update grandparent balance
+          const balanceBeforeF2 = grandParent.walletBalance;
           grandParent.walletBalance += lv2Amount;
           grandParent.totalEarnings += lv2Amount;
           await grandParent.save();
+
+          // Save balance history
+          await BalanceHistory.create({
+            userId: grandParent._id,
+            type: 'commission',
+            amount: lv2Amount,
+            balanceBefore: balanceBeforeF2,
+            balanceAfter: grandParent.walletBalance,
+            description: `Level 2 commission from ${buyer.username} - ${packageData.name}`,
+            relatedId: commission2._id,
+            relatedType: 'commission'
+          });
 
           await Transaction.create({
             userId: grandParent._id,

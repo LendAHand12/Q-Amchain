@@ -41,6 +41,10 @@ const withdrawalSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  rejectedAt: {
+    type: Date,
+    default: null
+  },
   completedAt: {
     type: Date,
     default: null

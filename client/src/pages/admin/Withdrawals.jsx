@@ -12,12 +12,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { formatDate } from "../../utils/dateFormat";
 import { formatAddress } from "../../utils/formatAddress";
 import Pagination from "../../components/Pagination";
+import WithdrawalPaymentModal from "../../components/WithdrawalPaymentModal";
 
 export default function AdminWithdrawals() {
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
   const [showCompleteForm, setShowCompleteForm] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [withdrawalToPay, setWithdrawalToPay] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState(null);
 
@@ -45,13 +48,21 @@ export default function AdminWithdrawals() {
   };
 
   const handleApprove = async (withdrawalId) => {
-    if (!confirm("Approve this withdrawal request?")) return;
+    if (!confirm("Approve this withdrawal request? You will need to pay the user via Metamask.")) return;
     try {
-      await api.put(`/withdrawals/${withdrawalId}/approve`);
-      toast.success("Withdrawal approved");
+      const response = await api.put(`/withdrawals/${withdrawalId}/approve`);
+      toast.success("Withdrawal approved. Please complete the payment.");
+      
+      // Use the withdrawal data from response
+      const approvedWithdrawal = response.data.data;
+      if (approvedWithdrawal) {
+        setWithdrawalToPay(approvedWithdrawal);
+        setShowPaymentModal(true);
+      }
+      
       fetchWithdrawals();
     } catch (error) {
-      toast.error("Failed to approve withdrawal");
+      toast.error(error.response?.data?.message || "Failed to approve withdrawal");
     }
   };
 
@@ -94,6 +105,21 @@ export default function AdminWithdrawals() {
         <h1 className="text-3xl font-bold mb-2">Withdrawal Management</h1>
         <p className="text-muted-foreground">Review and process withdrawal requests</p>
       </div>
+
+      {/* Payment Modal */}
+      {withdrawalToPay && (
+        <WithdrawalPaymentModal
+          withdrawal={withdrawalToPay}
+          open={showPaymentModal}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setWithdrawalToPay(null);
+          }}
+          onSuccess={() => {
+            fetchWithdrawals();
+          }}
+        />
+      )}
 
       <Dialog open={showCompleteForm} onOpenChange={setShowCompleteForm}>
         <DialogContent>
@@ -148,6 +174,7 @@ export default function AdminWithdrawals() {
                 <TableHead>Amount</TableHead>
                 <TableHead>Wallet Address</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Transaction Hash</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -155,7 +182,7 @@ export default function AdminWithdrawals() {
             <TableBody>
               {withdrawals.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan="6" className="text-center text-muted-foreground">
+                  <TableCell colSpan="7" className="text-center text-muted-foreground">
                     No withdrawals found
                   </TableCell>
                 </TableRow>
@@ -184,8 +211,46 @@ export default function AdminWithdrawals() {
                         {withdrawal.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(withdrawal.createdAt)}
+                    <TableCell>
+                      {withdrawal.transactionHash ? (
+                        <a
+                          href={`https://bscscan.com/tx/${withdrawal.transactionHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary font-mono text-sm hover:underline"
+                          title={withdrawal.transactionHash}
+                        >
+                          {formatAddress(withdrawal.transactionHash)}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      <div className="space-y-1">
+                        <div>
+                          <span className="text-xs">Created: </span>
+                          <span>{formatDate(withdrawal.createdAt)}</span>
+                        </div>
+                        {withdrawal.status === "completed" && withdrawal.completedAt && (
+                          <div>
+                            <span className="text-xs">Completed: </span>
+                            <span className="text-green-600">{formatDate(withdrawal.completedAt)}</span>
+                          </div>
+                        )}
+                        {withdrawal.status === "rejected" && withdrawal.rejectedAt && (
+                          <div>
+                            <span className="text-xs">Rejected: </span>
+                            <span className="text-red-600">{formatDate(withdrawal.rejectedAt)}</span>
+                          </div>
+                        )}
+                        {withdrawal.status === "approved" && withdrawal.approvedAt && (
+                          <div>
+                            <span className="text-xs">Approved: </span>
+                            <span className="text-blue-600">{formatDate(withdrawal.approvedAt)}</span>
+                          </div>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {withdrawal.status === "pending" && (

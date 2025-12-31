@@ -1,6 +1,7 @@
 import User from "../models/User.model.js";
 import Transaction from "../models/Transaction.model.js";
 import Commission from "../models/Commission.model.js";
+import BalanceHistory from "../models/BalanceHistory.model.js";
 
 export const getProfile = async (req, res) => {
   try {
@@ -312,6 +313,39 @@ export const getTransactions = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to get transactions",
+    });
+  }
+};
+
+export const getBalanceHistory = async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const balanceHistory = await BalanceHistory.find({ userId: req.user._id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await BalanceHistory.countDocuments({ userId: req.user._id });
+
+    res.json({
+      success: true,
+      data: {
+        history: balanceHistory,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / parseInt(limit)),
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Get balance history error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get balance history",
     });
   }
 };

@@ -1,6 +1,7 @@
 import Withdrawal from '../models/Withdrawal.model.js';
 import User from '../models/User.model.js';
 import Transaction from '../models/Transaction.model.js';
+import BalanceHistory from '../models/BalanceHistory.model.js';
 import AdminLog from '../models/AdminLog.model.js';
 import { verifyToken } from '../utils/twoFactor.service.js';
 import bcrypt from 'bcryptjs';
@@ -53,6 +54,9 @@ export const requestWithdrawal = async (req, res) => {
       });
     }
 
+    // Store balance before withdrawal
+    const balanceBefore = user.walletBalance;
+
     // Create withdrawal request using user's wallet address
     const withdrawal = new Withdrawal({
       userId: user._id,
@@ -66,6 +70,18 @@ export const requestWithdrawal = async (req, res) => {
     // Deduct from balance (will be refunded if rejected)
     user.walletBalance -= amount;
     await user.save();
+
+    // Save balance history
+    await BalanceHistory.create({
+      userId: user._id,
+      type: 'withdrawal',
+      amount: -amount, // Negative for withdrawal
+      balanceBefore,
+      balanceAfter: user.walletBalance,
+      description: `Withdrawal request: ${amount} USDT`,
+      relatedId: withdrawal._id,
+      relatedType: 'withdrawal'
+    });
 
     res.status(201).json({
       success: true,
@@ -139,7 +155,7 @@ export const getAllWithdrawals = async (req, res) => {
 export const approveWithdrawal = async (req, res) => {
   try {
     const withdrawal = await Withdrawal.findById(req.params.id)
-      .populate('userId');
+      .populate('userId', 'username email walletAddress');
 
     if (!withdrawal) {
       return res.status(404).json({
@@ -155,20 +171,26 @@ export const approveWithdrawal = async (req, res) => {
       });
     }
 
+    // Store userId before save (populate might be lost after save)
+    const userId = withdrawal.userId?._id || withdrawal.userId;
+
     withdrawal.status = 'approved';
-    withdrawal.adminId = req.user._id;
+    withdrawal.adminId = req.admin._id;
     withdrawal.approvedAt = new Date();
     await withdrawal.save();
 
     // Log admin action
     await AdminLog.create({
-      adminId: req.user._id,
+      adminId: req.admin._id,
       action: 'approve_withdrawal',
       entityType: 'withdrawal',
       entityId: withdrawal._id,
-      details: { amount: withdrawal.amount, userId: withdrawal.userId._id }
+      details: { amount: withdrawal.amount, userId: userId }
     });
 
+    // Populate userId again to ensure we have full user info for response
+    await withdrawal.populate('userId', 'username email walletAddress');
+    
     res.json({
       success: true,
       message: 'Withdrawal approved',
@@ -204,18 +226,32 @@ export const rejectWithdrawal = async (req, res) => {
     }
 
     withdrawal.status = 'rejected';
-    withdrawal.adminId = req.user._id;
+    withdrawal.adminId = req.admin._id;
     withdrawal.rejectionReason = reason;
+    withdrawal.rejectedAt = new Date();
     await withdrawal.save();
 
     // Refund to user balance
     const user = await User.findById(withdrawal.userId._id);
+    const balanceBefore = user.walletBalance;
     user.walletBalance += withdrawal.amount;
     await user.save();
 
+    // Save balance history for refund
+    await BalanceHistory.create({
+      userId: user._id,
+      type: 'refund',
+      amount: withdrawal.amount,
+      balanceBefore,
+      balanceAfter: user.walletBalance,
+      description: `Withdrawal rejected - refund: ${withdrawal.amount} USDT. Reason: ${reason}`,
+      relatedId: withdrawal._id,
+      relatedType: 'withdrawal'
+    });
+
     // Log admin action
     await AdminLog.create({
-      adminId: req.user._id,
+      adminId: req.admin._id,
       action: 'reject_withdrawal',
       entityType: 'withdrawal',
       entityId: withdrawal._id,
@@ -239,7 +275,8 @@ export const rejectWithdrawal = async (req, res) => {
 export const completeWithdrawal = async (req, res) => {
   try {
     const { transactionHash } = req.body;
-    const withdrawal = await Withdrawal.findById(req.params.id);
+    const withdrawal = await Withdrawal.findById(req.params.id)
+      .populate('userId');
 
     if (!withdrawal) {
       return res.status(404).json({
@@ -255,6 +292,13 @@ export const completeWithdrawal = async (req, res) => {
       });
     }
 
+    if (!transactionHash) {
+      return res.status(400).json({
+        success: false,
+        message: 'Transaction hash is required'
+      });
+    }
+
     withdrawal.status = 'completed';
     withdrawal.transactionHash = transactionHash;
     withdrawal.completedAt = new Date();
@@ -262,22 +306,22 @@ export const completeWithdrawal = async (req, res) => {
 
     // Create transaction record
     await Transaction.create({
-      userId: withdrawal.userId,
+      userId: withdrawal.userId._id,
       type: 'withdrawal',
       amount: withdrawal.amount,
       status: 'completed',
       transactionHash,
       toAddress: withdrawal.walletAddress,
-      description: 'Withdrawal'
+      description: 'Withdrawal completed'
     });
 
     // Log admin action
     await AdminLog.create({
-      adminId: req.user._id,
+      adminId: req.admin._id,
       action: 'complete_withdrawal',
       entityType: 'withdrawal',
       entityId: withdrawal._id,
-      details: { transactionHash, amount: withdrawal.amount }
+      details: { transactionHash, amount: withdrawal.amount, userId: withdrawal.userId._id }
     });
 
     res.json({

@@ -28,4 +28,7 @@ router.get("/commissions", authenticate, userController.getCommissions);
 // Get transaction history
 router.get("/transactions", authenticate, userController.getTransactions);
 
+// Get balance history
+router.get("/balance-history", authenticate, userController.getBalanceHistory);
+
 export default router;
