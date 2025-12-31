@@ -2,14 +2,12 @@ import express from "express";
 import { body } from "express-validator";
 import * as adminAuthController from "../controllers/adminAuth.controller.js";
 import { authenticateAdmin } from "../middleware/auth.middleware.js";
-import { loginLimiter } from "../middleware/rateLimit.middleware.js";
 
 const router = express.Router();
 
 // Admin Login
 router.post(
   "/login",
-  loginLimiter,
   [
     body("email").isEmail().normalizeEmail(),
     body("password").notEmpty(),

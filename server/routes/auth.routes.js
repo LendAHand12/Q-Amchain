@@ -2,7 +2,6 @@ import express from "express";
 import { body } from "express-validator";
 import * as authController from "../controllers/auth.controller.js";
 import { authenticate } from "../middleware/auth.middleware.js";
-import { loginLimiter, registerLimiter } from "../middleware/rateLimit.middleware.js";
 import { handleValidationErrors } from "../middleware/validation.middleware.js";
 
 const router = express.Router();
@@ -10,7 +9,6 @@ const router = express.Router();
 // Register
 router.post(
   "/register",
-  registerLimiter,
   [
     body("email").isEmail().normalizeEmail(),
     body("username")
@@ -47,7 +45,6 @@ router.post("/resend-verification", authController.resendVerification);
 // Login
 router.post(
   "/login",
-  loginLimiter,
   [body("email").isEmail().normalizeEmail(), body("password").notEmpty()],
   handleValidationErrors,
   authController.login
