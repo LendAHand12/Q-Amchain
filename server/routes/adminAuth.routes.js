@@ -2,6 +2,7 @@ import express from "express";
 import { body } from "express-validator";
 import * as adminAuthController from "../controllers/adminAuth.controller.js";
 import { authenticateAdmin } from "../middleware/auth.middleware.js";
+import { handleValidationErrors } from "../middleware/validation.middleware.js";
 
 const router = express.Router();
 
@@ -20,6 +21,15 @@ router.post("/2fa/verify", adminAuthController.verify2FA);
 
 // Admin 2FA Setup
 router.post("/2fa/setup", authenticateAdmin, adminAuthController.setup2FA);
+
+// Admin 2FA Verify Setup (after scanning QR code)
+router.post(
+  "/2fa/verify-setup",
+  authenticateAdmin,
+  [body("token").notEmpty().withMessage("2FA token is required")],
+  handleValidationErrors,
+  adminAuthController.verify2FASetup
+);
 
 // Admin 2FA Disable
 router.post("/2fa/disable", authenticateAdmin, adminAuthController.disable2FA);

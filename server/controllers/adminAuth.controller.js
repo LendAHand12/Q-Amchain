@@ -169,7 +169,9 @@ export const setup2FA = async (req, res) => {
     }
 
     const secret = generateSecret(admin.username);
+    // Save secret but don't enable 2FA yet - wait for verification
     admin.twoFactorSecret = secret.base32;
+    // Don't set isTwoFactorEnabled = true yet
     await admin.save();
 
     const qrCode = await generateQRCode(secret.otpauth_url);
@@ -187,6 +189,59 @@ export const setup2FA = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "2FA setup failed",
+    });
+  }
+};
+
+export const verify2FASetup = async (req, res) => {
+  try {
+    const { token } = req.body;
+    const admin = await Admin.findById(req.admin._id);
+
+    if (!admin.twoFactorSecret) {
+      return res.status(400).json({
+        success: false,
+        message: "2FA setup not initiated. Please setup 2FA first.",
+      });
+    }
+
+    if (admin.isTwoFactorEnabled) {
+      return res.status(400).json({
+        success: false,
+        message: "2FA is already enabled",
+      });
+    }
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "2FA token is required",
+      });
+    }
+
+    // Verify the token
+    const isValid = verifyToken(admin.twoFactorSecret, token);
+
+    if (!isValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid 2FA token. Please try again.",
+      });
+    }
+
+    // Enable 2FA after successful verification
+    admin.isTwoFactorEnabled = true;
+    await admin.save();
+
+    res.json({
+      success: true,
+      message: "2FA enabled successfully",
+    });
+  } catch (error) {
+    console.error("Admin 2FA setup verification error:", error);
+    res.status(500).json({
+      success: false,
+      message: "2FA setup verification failed",
     });
   }
 };

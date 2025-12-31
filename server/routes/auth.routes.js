@@ -72,6 +72,15 @@ router.post(
 // 2FA Setup
 router.post("/2fa/setup", authenticate, authController.setup2FA);
 
+// 2FA Verify Setup (after scanning QR code)
+router.post(
+  "/2fa/verify-setup",
+  authenticate,
+  [body("token").notEmpty().withMessage("2FA token is required")],
+  handleValidationErrors,
+  authController.verify2FASetup
+);
+
 // 2FA Verify (during login)
 router.post("/2fa/verify", authController.verify2FA);
 
