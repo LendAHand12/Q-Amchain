@@ -9,7 +9,7 @@ const router = express.Router();
 router.post(
   "/login",
   [
-    body("email").isEmail().normalizeEmail(),
+    body("email").isEmail().trim(),
     body("password").notEmpty(),
   ],
   adminAuthController.login

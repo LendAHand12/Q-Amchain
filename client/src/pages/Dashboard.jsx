@@ -38,16 +38,44 @@ export default function Dashboard() {
     }
   };
 
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
     const link = `${window.location.origin}/register?ref=${stats?.refCode}`;
-    navigator.clipboard
-      .writeText(link)
-      .then(() => {
+    
+    // Check if Clipboard API is available (requires HTTPS or localhost)
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(link);
         toast.success("Referral link copied to clipboard!");
-      })
-      .catch(() => {
-        toast.error("Failed to copy link");
-      });
+        return;
+      } catch (error) {
+        // Fall through to fallback method
+        console.warn("Clipboard API failed, using fallback:", error);
+      }
+    }
+    
+    // Fallback method for browsers/environments without Clipboard API
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = link;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      const successful = document.execCommand("copy");
+      document.body.removeChild(textArea);
+      
+      if (successful) {
+        toast.success("Referral link copied to clipboard!");
+      } else {
+        throw new Error("execCommand failed");
+      }
+    } catch (error) {
+      console.error("Copy failed:", error);
+      toast.error("Failed to copy link. Please copy manually.");
+    }
   };
 
   const handleEditRefCode = () => {

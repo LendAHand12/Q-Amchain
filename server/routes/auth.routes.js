@@ -10,7 +10,7 @@ const router = express.Router();
 router.post(
   "/register",
   [
-    body("email").isEmail().normalizeEmail(),
+    body("email").isEmail().trim(),
     body("username")
       .matches(/^[a-z0-9]+$/)
       .isLength({ min: 3, max: 20 }),
@@ -45,7 +45,7 @@ router.post("/resend-verification", authController.resendVerification);
 // Forgot Password
 router.post(
   "/forgot-password",
-  [body("email").isEmail().normalizeEmail()],
+  [body("email").isEmail().trim()],
   handleValidationErrors,
   authController.forgotPassword
 );
@@ -64,7 +64,7 @@ router.post(
 // Login
 router.post(
   "/login",
-  [body("email").isEmail().normalizeEmail(), body("password").notEmpty()],
+  [body("email").isEmail().trim(), body("password").notEmpty()],
   handleValidationErrors,
   authController.login
 );
