@@ -53,6 +53,9 @@ export default function UserDetails() {
       setValue("username", user.username || "");
       setValue("email", user.email || "");
       setValue("walletAddress", user.walletAddress || "");
+      setValue("fullName", user.fullName || "");
+      setValue("phoneNumber", user.phoneNumber || "");
+      setValue("identityNumber", user.identityNumber || "");
     } catch (error) {
       toast.error("Failed to load user details");
       navigate("/admin/users");
@@ -67,6 +70,9 @@ export default function UserDetails() {
         username: data.username?.trim(),
         email: data.email?.trim(),
         walletAddress: data.walletAddress?.trim(),
+        fullName: data.fullName?.trim(),
+        phoneNumber: data.phoneNumber?.trim(),
+        identityNumber: data.identityNumber?.trim(),
       });
       toast.success("User information updated successfully");
       setIsEditing(false);
@@ -85,6 +91,9 @@ export default function UserDetails() {
       setValue("username", user.username || "");
       setValue("email", user.email || "");
       setValue("walletAddress", user.walletAddress || "");
+      setValue("fullName", user.fullName || "");
+      setValue("phoneNumber", user.phoneNumber || "");
+      setValue("identityNumber", user.identityNumber || "");
     }
   };
 
@@ -256,6 +265,70 @@ export default function UserDetails() {
                     {errors.walletAddress && (
                       <p className="text-sm text-destructive mt-1">
                         {errors.walletAddress.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Full Name</Label>
+                    {isEditing ? (
+                      <Input
+                        {...register("fullName", {
+                          maxLength: {
+                            value: 100,
+                            message: "Full name must be less than 100 characters",
+                          },
+                        })}
+                        placeholder="Full name as on ID card"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="font-medium">{userDetails.user.fullName || "Not provided"}</p>
+                    )}
+                    {errors.fullName && (
+                      <p className="text-sm text-destructive mt-1">{errors.fullName.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Phone Number</Label>
+                    {isEditing ? (
+                      <Input
+                        {...register("phoneNumber", {
+                          maxLength: {
+                            value: 20,
+                            message: "Phone number must be less than 20 characters",
+                          },
+                        })}
+                        placeholder="Phone number"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="font-medium">{userDetails.user.phoneNumber || "Not provided"}</p>
+                    )}
+                    {errors.phoneNumber && (
+                      <p className="text-sm text-destructive mt-1">{errors.phoneNumber.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Identity Number</Label>
+                    {isEditing ? (
+                      <Input
+                        {...register("identityNumber", {
+                          maxLength: {
+                            value: 50,
+                            message: "Identity number must be less than 50 characters",
+                          },
+                        })}
+                        placeholder="ID card, passport, or identity number"
+                        className="mt-1 font-mono text-sm"
+                      />
+                    ) : (
+                      <p className="font-mono text-sm">
+                        {userDetails.user.identityNumber || "Not provided"}
+                      </p>
+                    )}
+                    {errors.identityNumber && (
+                      <p className="text-sm text-destructive mt-1">
+                        {errors.identityNumber.message}
                       </p>
                     )}
                   </div>

@@ -27,10 +27,16 @@ router.post(
       .withMessage("Wallet address is required")
       .matches(/^0x[a-fA-F0-9]{40}$/)
       .withMessage("Invalid BEP20 wallet address format"),
+    body("fullName").optional().trim().isLength({ max: 100 }),
+    body("phoneNumber").optional().trim().isLength({ max: 20 }),
+    body("identityNumber").optional().trim().isLength({ max: 50 }),
   ],
   handleValidationErrors,
   authController.register
 );
+
+// Check Referrer Code
+router.get("/check-referrer", authController.checkReferrerCode);
 
 // Verify Email
 router.get("/verify-email", authController.verifyEmail);

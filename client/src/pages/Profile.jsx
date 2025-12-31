@@ -83,6 +83,18 @@ export default function Profile() {
               <p className="text-gray-900">{profile.username}</p>
             </div>
             <div>
+              <label className="block text-sm font-medium text-gray-700">Full Name</label>
+              <p className="text-gray-900">{profile.fullName || "Not provided"}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+              <p className="text-gray-900">{profile.phoneNumber || "Not provided"}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Identity Number</label>
+              <p className="text-gray-900 font-mono">{profile.identityNumber || "Not provided"}</p>
+            </div>
+            <div>
               <label className="block text-sm font-medium text-gray-700">Referral Code</label>
               <p className="text-gray-900 font-mono">{profile.refCode}</p>
             </div>

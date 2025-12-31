@@ -1,4 +1,5 @@
 import User from "../models/User.model.js";
+import Transaction from "../models/Transaction.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
@@ -18,7 +19,16 @@ const generateTokens = (userId) => {
 
 export const register = async (req, res) => {
   try {
-    const { email, username, password, referrerCode, walletAddress } = req.body;
+    const {
+      email,
+      username,
+      password,
+      referrerCode,
+      walletAddress,
+      fullName,
+      phoneNumber,
+      identityNumber,
+    } = req.body;
 
     // Check if user exists
     const existingUser = await User.findOne({
@@ -52,6 +62,20 @@ export const register = async (req, res) => {
       });
     }
 
+    // Check if parent has purchased a package
+    const parentHasPackage = await Transaction.findOne({
+      userId: parent._id,
+      type: "payment",
+      status: "completed",
+    });
+    if (!parentHasPackage) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "This referrer has not purchased any package yet. You cannot register with this referral code.",
+      });
+    }
+
     const parentId = parent._id;
     const ancestors = [parent._id, ...(parent.ancestors || [])];
 
@@ -64,6 +88,9 @@ export const register = async (req, res) => {
       username,
       password,
       walletAddress: walletAddress.trim(),
+      fullName: fullName?.trim() || "",
+      phoneNumber: phoneNumber?.trim() || "",
+      identityNumber: identityNumber?.trim() || "",
       parentId,
       ancestors,
       refCode: username,
@@ -99,26 +126,104 @@ export const register = async (req, res) => {
   }
 };
 
+export const checkReferrerCode = async (req, res) => {
+  try {
+    const { referrerCode } = req.query;
+
+    if (!referrerCode || !referrerCode.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Referrer code is required",
+        isValid: false,
+      });
+    }
+
+    // Find parent by referrerCode
+    const parent = await User.findOne({
+      refCode: referrerCode.trim().toLowerCase(),
+    });
+
+    if (!parent) {
+      return res.json({
+        success: true,
+        isValid: false,
+        message: "Invalid referrer code",
+      });
+    }
+
+    // Check if parent has purchased a package
+    const parentHasPackage = await Transaction.findOne({
+      userId: parent._id,
+      type: "payment",
+      status: "completed",
+    });
+
+    if (!parentHasPackage) {
+      return res.json({
+        success: true,
+        isValid: false,
+        message:
+          "This referrer has not purchased any package yet. You cannot register with this referral code.",
+      });
+    }
+
+    return res.json({
+      success: true,
+      isValid: true,
+      message: "Referrer code is valid",
+    });
+  } catch (error) {
+    console.error("Check referrer code error:", error);
+    res.status(500).json({
+      success: false,
+      isValid: false,
+      message: "Failed to check referrer code",
+    });
+  }
+};
+
 export const verifyEmail = async (req, res) => {
   try {
     const { token } = req.query;
 
-    const user = await User.findOne({ emailVerificationToken: token });
-
-    if (!user) {
+    if (!token) {
       return res.status(400).json({
         success: false,
-        message: "Invalid or expired verification token",
+        message: "Verification token is required",
       });
     }
 
+    // Find user by token
+    const user = await User.findOne({ emailVerificationToken: token });
+
+    if (!user) {
+      // Token not found - invalid or expired token
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification token",
+        code: "INVALID_TOKEN",
+      });
+    }
+
+    // Check if this user's email is already verified
+    if (user.isEmailVerified) {
+      // User has already verified, return success message but don't modify token
+      return res.json({
+        success: true,
+        message: "Email has already been verified",
+        alreadyVerified: true,
+      });
+    }
+
+    // Verify the email (but keep the token)
     user.isEmailVerified = true;
-    user.emailVerificationToken = null;
+    // Don't delete emailVerificationToken - keep it for future reference
     await user.save();
 
     res.json({
       success: true,
       message: "Email verified successfully",
+      alreadyVerified: false,
     });
   } catch (error) {
     console.error("Email verification error:", error);

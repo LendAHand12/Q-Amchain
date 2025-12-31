@@ -176,10 +176,14 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Your Referral Code</CardTitle>
-            <CardDescription>Share this code to earn commissions</CardDescription>
+            <CardDescription>
+              {stats?.purchasedPackageName
+                ? "Share this code to earn commissions"
+                : "Purchase a package to get your referral code"}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {stats?.refCode ? (
+            {stats?.purchasedPackageName && stats?.refCode ? (
               <>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <Badge
@@ -217,7 +221,18 @@ export default function Dashboard() {
                 </div>
               </>
             ) : (
-              <p className="text-sm text-muted-foreground">No referral code available</p>
+              <div className="text-center py-4">
+                <p className="text-sm text-muted-foreground mb-2">
+                  You need to purchase a package first to get your referral code.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => (window.location.href = "/dashboard/packages")}
+                >
+                  Go to Packages
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>

@@ -20,13 +20,18 @@ export default function Register() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [referrerCodeFromUrl, setReferrerCodeFromUrl] = useState("");
+  const [referrerCodeStatus, setReferrerCodeStatus] = useState(null); // null, 'checking', 'valid', 'invalid'
+  const [referrerCodeMessage, setReferrerCodeMessage] = useState("");
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     setValue,
+    watch,
   } = useForm();
+
+  const referrerCodeValue = watch("referrerCode") || referrerCodeFromUrl;
 
   useEffect(() => {
     const ref = searchParams.get("ref");
@@ -34,23 +39,81 @@ export default function Register() {
       const upperRef = ref.toLowerCase().trim();
       setReferrerCodeFromUrl(upperRef);
       setValue("referrerCode", upperRef);
+      // Check referrer code when loaded from URL
+      checkReferrerCode(upperRef);
     }
   }, [searchParams, setValue]);
 
+  // Check referrer code when user types
+  useEffect(() => {
+    if (referrerCodeValue && referrerCodeValue.trim().length >= 6) {
+      const timeoutId = setTimeout(() => {
+        checkReferrerCode(referrerCodeValue.trim().toLowerCase());
+      }, 500); // Debounce 500ms
+
+      return () => clearTimeout(timeoutId);
+    } else if (referrerCodeValue && referrerCodeValue.trim().length > 0) {
+      setReferrerCodeStatus(null);
+      setReferrerCodeMessage("");
+    }
+  }, [referrerCodeValue]);
+
+  const checkReferrerCode = async (code) => {
+    if (!code || code.trim().length < 6) {
+      setReferrerCodeStatus(null);
+      setReferrerCodeMessage("");
+      return;
+    }
+
+    setReferrerCodeStatus("checking");
+    try {
+      const response = await api.get(`/auth/check-referrer?referrerCode=${encodeURIComponent(code)}`);
+      if (response.data.isValid) {
+        setReferrerCodeStatus("valid");
+        setReferrerCodeMessage("Referrer code is valid");
+      } else {
+        setReferrerCodeStatus("invalid");
+        setReferrerCodeMessage(response.data.message || "Invalid referrer code");
+      }
+    } catch (error) {
+      setReferrerCodeStatus("invalid");
+      setReferrerCodeMessage(error.response?.data?.message || "Failed to verify referrer code");
+    }
+  };
+
   const onSubmit = async (data) => {
     try {
+      const referrerCode = (data.referrerCode || referrerCodeFromUrl).trim().toLowerCase();
+
+      if (!referrerCode) {
+        toast.error("Referrer code is required");
+        return;
+      }
+
+      // Check referrer code one more time before submitting
+      if (referrerCodeStatus !== "valid") {
+        const checkResponse = await api.get(
+          `/auth/check-referrer?referrerCode=${encodeURIComponent(referrerCode)}`
+        );
+        if (!checkResponse.data.isValid) {
+          toast.error(
+            checkResponse.data.message ||
+              "This referrer has not purchased any package yet. You cannot register with this referral code."
+          );
+          return;
+        }
+      }
+
       const payload = {
         email: data.email,
         username: data.username.toLowerCase().replace(/[^a-z0-9]/g, ""),
         password: data.password,
         walletAddress: data.walletAddress.trim(),
-        referrerCode: (data.referrerCode || referrerCodeFromUrl).trim(),
+        fullName: data.fullName.trim(),
+        phoneNumber: data.phoneNumber.trim(),
+        identityNumber: data.identityNumber.trim(),
+        referrerCode,
       };
-
-      if (!payload.referrerCode) {
-        toast.error("Referrer code is required");
-        return;
-      }
 
       await api.post("/auth/register", payload);
       toast.success("Registration successful! Please check your email to verify your account.");
@@ -147,6 +210,63 @@ export default function Register() {
               </p>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name (as on ID card) *</Label>
+              <Input
+                id="fullName"
+                type="text"
+                placeholder="Enter your full name as shown on ID card"
+                {...register("fullName", {
+                  required: "Full name is required",
+                  maxLength: {
+                    value: 100,
+                    message: "Full name must be less than 100 characters",
+                  },
+                })}
+              />
+              {errors.fullName && (
+                <p className="text-sm text-destructive">{errors.fullName.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phoneNumber">Phone Number *</Label>
+              <Input
+                id="phoneNumber"
+                type="tel"
+                placeholder="Enter your phone number"
+                {...register("phoneNumber", {
+                  required: "Phone number is required",
+                  maxLength: {
+                    value: 20,
+                    message: "Phone number must be less than 20 characters",
+                  },
+                })}
+              />
+              {errors.phoneNumber && (
+                <p className="text-sm text-destructive">{errors.phoneNumber.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="identityNumber">Identity Number (ID Card/Passport) *</Label>
+              <Input
+                id="identityNumber"
+                type="text"
+                placeholder="Enter your ID card, passport, or identity number"
+                {...register("identityNumber", {
+                  required: "Identity number is required",
+                  maxLength: {
+                    value: 50,
+                    message: "Identity number must be less than 50 characters",
+                  },
+                })}
+              />
+              {errors.identityNumber && (
+                <p className="text-sm text-destructive">{errors.identityNumber.message}</p>
+              )}
+            </div>
+
             {/* Hidden referrerCode field - auto-filled from URL */}
             <input
               type="hidden"
@@ -155,10 +275,37 @@ export default function Register() {
               })}
             />
             {referrerCodeFromUrl && (
-              <div className="bg-primary/10 p-3 rounded-lg border border-primary/20">
-                <p className="text-sm">
-                  Referred by: <Badge variant="default">{referrerCodeFromUrl}</Badge>
-                </p>
+              <div className="space-y-2">
+                <Label>Referrer Code</Label>
+                <div className="bg-primary/10 p-3 rounded-lg border border-primary/20">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm">
+                      Referred by: <Badge variant="default">{referrerCodeFromUrl}</Badge>
+                    </p>
+                    {referrerCodeStatus === "checking" && (
+                      <span className="text-xs text-muted-foreground">Checking...</span>
+                    )}
+                    {referrerCodeStatus === "valid" && (
+                      <span className="text-xs text-green-600">✓ Valid</span>
+                    )}
+                    {referrerCodeStatus === "invalid" && (
+                      <span className="text-xs text-destructive">✗ Invalid</span>
+                    )}
+                  </div>
+                  {referrerCodeMessage && (
+                    <p
+                      className={`text-xs mt-2 ${
+                        referrerCodeStatus === "valid"
+                          ? "text-green-600"
+                          : referrerCodeStatus === "invalid"
+                          ? "text-destructive"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      {referrerCodeMessage}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
             {!referrerCodeFromUrl && (
@@ -167,7 +314,7 @@ export default function Register() {
                 <Input
                   id="referrerCode"
                   type="text"
-                  placeholder="Enter referrer code (e.g., ROOT001)"
+                  placeholder="Enter referrer code (e.g., root001)"
                   {...register("referrerCode", {
                     required: "Referrer code is required",
                     onChange: (e) => {
@@ -175,6 +322,15 @@ export default function Register() {
                     },
                   })}
                 />
+                {referrerCodeStatus === "checking" && (
+                  <p className="text-xs text-muted-foreground">Checking referrer code...</p>
+                )}
+                {referrerCodeStatus === "valid" && (
+                  <p className="text-xs text-green-600">✓ {referrerCodeMessage}</p>
+                )}
+                {referrerCodeStatus === "invalid" && (
+                  <p className="text-xs text-destructive">✗ {referrerCodeMessage}</p>
+                )}
                 {errors.referrerCode && (
                   <p className="text-sm text-destructive">{errors.referrerCode.message}</p>
                 )}

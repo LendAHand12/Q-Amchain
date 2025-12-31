@@ -331,7 +331,7 @@ export const updateUserWallet = async (req, res) => {
 
 export const updateUserInfo = async (req, res) => {
   try {
-    const { username, email, walletAddress } = req.body;
+    const { username, email, walletAddress, fullName, phoneNumber, identityNumber } = req.body;
 
     const user = await User.findById(req.params.id);
 
@@ -347,6 +347,9 @@ export const updateUserInfo = async (req, res) => {
       username: user.username,
       email: user.email,
       walletAddress: user.walletAddress,
+      fullName: user.fullName,
+      phoneNumber: user.phoneNumber,
+      identityNumber: user.identityNumber,
     };
 
     const changes = {};
@@ -376,6 +379,21 @@ export const updateUserInfo = async (req, res) => {
       }
       user.email = email.trim().toLowerCase();
       changes.email = { old: oldValues.email, new: email.trim().toLowerCase() };
+    }
+
+    if (fullName !== undefined && fullName !== user.fullName) {
+      user.fullName = fullName.trim();
+      changes.fullName = { old: oldValues.fullName, new: fullName.trim() };
+    }
+
+    if (phoneNumber !== undefined && phoneNumber !== user.phoneNumber) {
+      user.phoneNumber = phoneNumber.trim();
+      changes.phoneNumber = { old: oldValues.phoneNumber, new: phoneNumber.trim() };
+    }
+
+    if (identityNumber !== undefined && identityNumber !== user.identityNumber) {
+      user.identityNumber = identityNumber.trim();
+      changes.identityNumber = { old: oldValues.identityNumber, new: identityNumber.trim() };
     }
 
     if (walletAddress !== undefined && walletAddress !== user.walletAddress) {

@@ -86,6 +86,21 @@ const userSchema = new mongoose.Schema(
       trim: true,
       match: [/^0x[a-fA-F0-9]{40}$/, "Invalid BEP20 wallet address format"],
     },
+    fullName: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    phoneNumber: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    identityNumber: {
+      type: String,
+      trim: true,
+      default: "",
+    },
   },
   {
     timestamps: true,
