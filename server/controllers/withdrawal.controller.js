@@ -276,7 +276,7 @@ export const completeWithdrawal = async (req, res) => {
   try {
     const { transactionHash } = req.body;
     const withdrawal = await Withdrawal.findById(req.params.id)
-      .populate('userId');
+      .populate('userId', 'username email walletAddress');
 
     if (!withdrawal) {
       return res.status(404).json({
@@ -285,10 +285,11 @@ export const completeWithdrawal = async (req, res) => {
       });
     }
 
-    if (withdrawal.status !== 'approved') {
+    // Allow completing from pending status (approve and complete in one step)
+    if (withdrawal.status !== 'approved' && withdrawal.status !== 'pending') {
       return res.status(400).json({
         success: false,
-        message: 'Withdrawal must be approved first'
+        message: 'Withdrawal must be pending or approved'
       });
     }
 
@@ -299,6 +300,26 @@ export const completeWithdrawal = async (req, res) => {
       });
     }
 
+    // Store userId before save
+    const userId = withdrawal.userId?._id || withdrawal.userId;
+
+    // If status is pending, approve and complete in one step
+    if (withdrawal.status === 'pending') {
+      withdrawal.status = 'approved';
+      withdrawal.adminId = req.admin._id;
+      withdrawal.approvedAt = new Date();
+      
+      // Log approve action
+      await AdminLog.create({
+        adminId: req.admin._id,
+        action: 'approve_withdrawal',
+        entityType: 'withdrawal',
+        entityId: withdrawal._id,
+        details: { amount: withdrawal.amount, userId: userId }
+      });
+    }
+
+    // Complete the withdrawal
     withdrawal.status = 'completed';
     withdrawal.transactionHash = transactionHash;
     withdrawal.completedAt = new Date();

@@ -67,26 +67,25 @@ export default function WithdrawalPaymentModal({
       return;
     }
 
-    // const balanceNum = parseFloat(usdtBalance);
-    // const amountNum = parseFloat(withdrawal.amount);
+    const balanceNum = parseFloat(usdtBalance);
+    const amountNum = parseFloat(withdrawal.amount);
 
-    // if (balanceNum < amountNum) {
-    //   toast.error(
-    //     `Insufficient USDT balance. You have ${balanceNum.toFixed(4)} USDT, need ${amountNum} USDT`
-    //   );
-    //   return;
-    // }
+    if (balanceNum < amountNum) {
+      toast.error(
+        `Insufficient USDT balance. You have ${balanceNum.toFixed(4)} USDT, need ${amountNum} USDT`
+      );
+      return;
+    }
 
     setLoading(true);
 
     try {
       // Transfer USDT to user's wallet
-    //   const transactionHash = await transferUSDT(
-    //     withdrawal.walletAddress,
-    //     withdrawal.amount.toString(),
-    //     address
-    //   );
-      const transactionHash = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+      const transactionHash = await transferUSDT(
+        withdrawal.walletAddress,
+        withdrawal.amount.toString(),
+        address
+      );
 
       if (transactionHash) {
         // Complete withdrawal with transaction hash
@@ -245,9 +244,8 @@ export default function WithdrawalPaymentModal({
               !isConnected ||
               !isCorrectNetwork ||
               loading ||
-              verifying 
-            //   ||
-            //   parseFloat(usdtBalance) < parseFloat(withdrawal.amount)
+              verifying ||
+              parseFloat(usdtBalance) < parseFloat(withdrawal.amount)
             }
           >
             {verifying

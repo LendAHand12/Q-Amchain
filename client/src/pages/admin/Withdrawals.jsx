@@ -49,20 +49,28 @@ export default function AdminWithdrawals() {
 
   const handleApprove = async (withdrawalId) => {
     if (!confirm("Approve this withdrawal request? You will need to pay the user via Metamask.")) return;
-    try {
-      const response = await api.put(`/withdrawals/${withdrawalId}/approve`);
-      toast.success("Withdrawal approved. Please complete the payment.");
-      
-      // Use the withdrawal data from response
-      const approvedWithdrawal = response.data.data;
-      if (approvedWithdrawal) {
-        setWithdrawalToPay(approvedWithdrawal);
-        setShowPaymentModal(true);
+    
+    // Find the withdrawal from current list
+    const withdrawalToProcess = withdrawals.find(w => w._id === withdrawalId);
+    if (withdrawalToProcess) {
+      // Just show payment modal, don't approve yet
+      setWithdrawalToPay(withdrawalToProcess);
+      setShowPaymentModal(true);
+    } else {
+      // If not found in list, fetch it
+      try {
+        const response = await api.get(`/withdrawals`);
+        const allWithdrawals = response.data.data.withdrawals || [];
+        const found = allWithdrawals.find(w => w._id === withdrawalId);
+        if (found) {
+          setWithdrawalToPay(found);
+          setShowPaymentModal(true);
+        } else {
+          toast.error("Withdrawal not found");
+        }
+      } catch (error) {
+        toast.error("Failed to load withdrawal details");
       }
-      
-      fetchWithdrawals();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to approve withdrawal");
     }
   };
 
