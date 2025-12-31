@@ -38,12 +38,6 @@ export default function Layout() {
                   >
                     Register
                   </Link>
-                  <Link
-                    to="/admin/login"
-                    className="px-4 py-2 text-gray-600 hover:text-gray-800 text-sm"
-                  >
-                    Admin
-                  </Link>
                 </>
               ) : isAdminAuthenticated ? (
                 <Link to="/admin" className="px-4 py-2 text-gray-700 hover:text-blue-600">
