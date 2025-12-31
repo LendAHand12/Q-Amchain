@@ -3,7 +3,7 @@ import Transaction from "../models/Transaction.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { sendVerificationEmail } from "../utils/email.service.js";
+import { sendVerificationEmail, sendResetPasswordEmail } from "../utils/email.service.js";
 import { generateSecret, verifyToken, generateQRCode } from "../utils/twoFactor.service.js";
 
 // Generate JWT tokens for user
@@ -536,4 +536,96 @@ export const logout = async (req, res) => {
     success: true,
     message: "Logout successful",
   });
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    // Don't reveal if user exists or not for security
+    if (!user) {
+      return res.json({
+        success: true,
+        message: "If that email exists, a password reset link has been sent",
+      });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.passwordResetToken = resetToken;
+    user.passwordResetExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    // Send reset email
+    await sendResetPasswordEmail(user.email, resetToken);
+
+    res.json({
+      success: true,
+      message: "If that email exists, a password reset link has been sent",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to process password reset request",
+    });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Token and password are required",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    const user = await User.findOne({
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset token",
+      });
+    }
+
+    // Update password
+    user.password = password;
+    user.passwordResetToken = null;
+    user.passwordResetExpires = null;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to reset password",
+    });
+  }
 };

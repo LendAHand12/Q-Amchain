@@ -39,3 +39,16 @@ export const sendVerificationEmail = async (email, token) => {
   `;
   return await sendEmail(email, "Verify Your Email - Q-Amchain", html);
 };
+
+export const sendResetPasswordEmail = async (email, token) => {
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+  const html = `
+    <h2>Reset Your Password</h2>
+    <p>You requested to reset your password. Click the link below to reset it:</p>
+    <a href="${resetUrl}">Reset Password</a>
+    <p>Or copy this link: ${resetUrl}</p>
+    <p>This link will expire in 1 hour.</p>
+    <p>If you didn't request this, please ignore this email.</p>
+  `;
+  return await sendEmail(email, "Reset Your Password - Q-Amchain", html);
+};

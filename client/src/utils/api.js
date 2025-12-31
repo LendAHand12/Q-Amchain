@@ -46,8 +46,24 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Avoid infinite loop
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Don't handle 401 for public/auth endpoints (login, register, forgot-password, etc.)
+    const isPublicEndpoint = 
+      originalRequest.url?.includes("/auth/login") ||
+      originalRequest.url?.includes("/auth/register") ||
+      originalRequest.url?.includes("/auth/forgot-password") ||
+      originalRequest.url?.includes("/auth/reset-password") ||
+      originalRequest.url?.includes("/auth/verify-email") ||
+      originalRequest.url?.includes("/auth/resend-verification") ||
+      originalRequest.url?.includes("/auth/check-referrer") ||
+      originalRequest.url?.includes("/admin/auth/login");
+
+    // Don't redirect if already on login page or if it's a public endpoint
+    const isOnLoginPage = 
+      window.location.pathname === "/login" || 
+      window.location.pathname === "/admin/login";
+
+    // Avoid infinite loop and don't handle public endpoints
+    if (error.response?.status === 401 && !originalRequest._retry && !isPublicEndpoint) {
       originalRequest._retry = true;
 
       const isInAdminPanel = window.location.pathname.includes("/admin");
@@ -74,13 +90,19 @@ api.interceptors.response.use(
           } catch (refreshError) {
             localStorage.removeItem("adminAccessToken");
             localStorage.removeItem("adminRefreshToken");
-            window.location.href = "/admin/login";
+            // Only redirect if not already on login page
+            if (!isOnLoginPage) {
+              window.location.href = "/admin/login";
+            }
             return Promise.reject(refreshError);
           }
         } else {
           localStorage.removeItem("adminAccessToken");
           localStorage.removeItem("adminRefreshToken");
-          window.location.href = "/admin/login";
+          // Only redirect if not already on login page
+          if (!isOnLoginPage) {
+            window.location.href = "/admin/login";
+          }
         }
       } else {
         // User token refresh
@@ -95,13 +117,19 @@ api.interceptors.response.use(
           } catch (refreshError) {
             localStorage.removeItem("accessToken");
             localStorage.removeItem("refreshToken");
-            window.location.href = "/login";
+            // Only redirect if not already on login page
+            if (!isOnLoginPage) {
+              window.location.href = "/login";
+            }
             return Promise.reject(refreshError);
           }
         } else {
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
-          window.location.href = "/login";
+          // Only redirect if not already on login page
+          if (!isOnLoginPage) {
+            window.location.href = "/login";
+          }
         }
       }
     }

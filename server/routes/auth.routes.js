@@ -42,6 +42,25 @@ router.get("/verify-email", authController.verifyEmail);
 // Resend Verification Email
 router.post("/resend-verification", authController.resendVerification);
 
+// Forgot Password
+router.post(
+  "/forgot-password",
+  [body("email").isEmail().normalizeEmail()],
+  handleValidationErrors,
+  authController.forgotPassword
+);
+
+// Reset Password
+router.post(
+  "/reset-password",
+  [
+    body("token").notEmpty().withMessage("Token is required"),
+    body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+  ],
+  handleValidationErrors,
+  authController.resetPassword
+);
+
 // Login
 router.post(
   "/login",

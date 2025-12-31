@@ -6,22 +6,20 @@ import api from "../utils/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Eye, EyeOff } from "lucide-react";
+import registerBackground from "../assets/register-background.png";
+import registerLeftBackground from "../assets/register-left-background.png";
+import AuthFooter from "../components/AuthFooter";
 
 export default function Register() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [referrerCodeFromUrl, setReferrerCodeFromUrl] = useState("");
-  const [referrerCodeStatus, setReferrerCodeStatus] = useState(null); // null, 'checking', 'valid', 'invalid'
+  const [referrerCodeStatus, setReferrerCodeStatus] = useState(null);
   const [referrerCodeMessage, setReferrerCodeMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -39,17 +37,15 @@ export default function Register() {
       const upperRef = ref.toLowerCase().trim();
       setReferrerCodeFromUrl(upperRef);
       setValue("referrerCode", upperRef);
-      // Check referrer code when loaded from URL
       checkReferrerCode(upperRef);
     }
   }, [searchParams, setValue]);
 
-  // Check referrer code when user types
   useEffect(() => {
     if (referrerCodeValue && referrerCodeValue.trim().length >= 6) {
       const timeoutId = setTimeout(() => {
         checkReferrerCode(referrerCodeValue.trim().toLowerCase());
-      }, 500); // Debounce 500ms
+      }, 500);
 
       return () => clearTimeout(timeoutId);
     } else if (referrerCodeValue && referrerCodeValue.trim().length > 0) {
@@ -67,7 +63,9 @@ export default function Register() {
 
     setReferrerCodeStatus("checking");
     try {
-      const response = await api.get(`/auth/check-referrer?referrerCode=${encodeURIComponent(code)}`);
+      const response = await api.get(
+        `/auth/check-referrer?referrerCode=${encodeURIComponent(code)}`
+      );
       if (response.data.isValid) {
         setReferrerCodeStatus("valid");
         setReferrerCodeMessage("Referrer code is valid");
@@ -90,7 +88,6 @@ export default function Register() {
         return;
       }
 
-      // Check referrer code one more time before submitting
       if (referrerCodeStatus !== "valid") {
         const checkResponse = await api.get(
           `/auth/check-referrer?referrerCode=${encodeURIComponent(referrerCode)}`
@@ -104,9 +101,22 @@ export default function Register() {
         }
       }
 
+      // Validate username format before submitting
+      const cleanedUsername = data.username.toLowerCase().trim();
+      if (!/^[a-z0-9]+$/.test(cleanedUsername)) {
+        toast.error(
+          "Username must be lowercase alphanumeric only (a-z, 0-9), no spaces or special characters"
+        );
+        return;
+      }
+      if (cleanedUsername.length < 3 || cleanedUsername.length > 20) {
+        toast.error("Username must be between 3 and 20 characters");
+        return;
+      }
+
       const payload = {
         email: data.email,
-        username: data.username.toLowerCase().replace(/[^a-z0-9]/g, ""),
+        username: cleanedUsername,
         password: data.password,
         walletAddress: data.walletAddress.trim(),
         fullName: data.fullName.trim(),
@@ -119,80 +129,162 @@ export default function Register() {
       toast.success("Registration successful! Please check your email to verify your account.");
       navigate("/login");
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data?.errors?.[0]?.message ||
-        "Registration failed";
-      toast.error(errorMessage);
+      // Handle validation errors from backend
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        // Find username error first, or show first error
+        const usernameError = error.response.data.errors.find((err) => err.field === "username");
+        if (usernameError) {
+          toast.error(`Username: ${usernameError.message || "Invalid username format"}`);
+        } else {
+          const firstError = error.response.data.errors[0];
+          toast.error(
+            `${
+              firstError.field
+                ? firstError.field.charAt(0).toUpperCase() + firstError.field.slice(1) + ": "
+                : ""
+            }${firstError.message || "Validation failed"}`
+          );
+        }
+      } else {
+        const errorMessage = error.response?.data?.message || "Registration failed";
+        toast.error(errorMessage);
+      }
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Create Account</CardTitle>
-          <CardDescription className="text-center">
-            Sign up to start earning with Q-Amchain
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                {...register("email", { required: "Email is required" })}
-              />
-              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-            </div>
+    <div
+      className="flex min-h-screen bg-center bg-no-repeat bg-cover"
+      style={{ backgroundImage: `url(${registerBackground})` }}
+    >
+      {/* Left Sidebar */}
+      <div
+        className="hidden lg:flex lg:w-[300px] relative flex-col"
+        style={{ backgroundImage: `url(${registerLeftBackground})` }}
+      ></div>
 
+      {/* Right Side - Registration Form */}
+      <div className="flex items-center justify-center flex-1 p-8 lg:p-12">
+        <div className="w-full max-w-[654px]">
+          <h1 className="mb-12 text-5xl font-bold text-white">Sign Up</h1>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-[27px]" autoComplete="off">
+            {/* User Name */}
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="username (lowercase, no spaces)"
+                placeholder="User Name"
+                autoComplete="off"
+                className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 {...register("username", {
                   required: "Username is required",
+                  minLength: {
+                    value: 3,
+                    message: "Username must be at least 3 characters",
+                  },
+                  maxLength: {
+                    value: 20,
+                    message: "Username must be less than 20 characters",
+                  },
                   pattern: {
                     value: /^[a-z0-9]+$/,
-                    message: "Username must be lowercase alphanumeric, no spaces",
+                    message:
+                      "Username must be lowercase alphanumeric only (a-z, 0-9), no spaces or special characters",
+                  },
+                  onChange: (e) => {
+                    // Auto convert to lowercase
+                    const value = e.target.value.toLowerCase();
+                    e.target.value = value;
                   },
                 })}
               />
-              {errors.username && (
-                <p className="text-sm text-destructive">{errors.username.message}</p>
-              )}
+              {errors.username && <p className="text-sm text-red-400">{errors.username.message}</p>}
             </div>
 
+            {/* Full Name */}
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
               <Input
-                id="password"
-                type="password"
-                placeholder="•••••••• (min 6 characters)"
-                {...register("password", {
-                  required: "Password is required",
-                  minLength: {
-                    value: 6,
-                    message: "Password must be at least 6 characters",
+                id="fullName"
+                type="text"
+                placeholder="Full Name"
+                autoComplete="off"
+                className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                {...register("fullName", {
+                  required: "Full name is required",
+                  maxLength: {
+                    value: 100,
+                    message: "Full name must be less than 100 characters",
                   },
                 })}
               />
-              {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
-              )}
+              {errors.fullName && <p className="text-sm text-red-400">{errors.fullName.message}</p>}
             </div>
 
+            {/* Email */}
             <div className="space-y-2">
-              <Label htmlFor="walletAddress">Wallet Address (USDT BEP20) *</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Email"
+                autoComplete="off"
+                className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                {...register("email", { required: "Email is required" })}
+              />
+              {errors.email && <p className="text-sm text-red-400">{errors.email.message}</p>}
+            </div>
+
+            {/* Phone Number and Identity Number - 2 columns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-[27px]">
+              <div className="space-y-2">
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  placeholder="Phone number"
+                  autoComplete="off"
+                  className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                  {...register("phoneNumber", {
+                    required: "Phone number is required",
+                    maxLength: {
+                      value: 20,
+                      message: "Phone number must be less than 20 characters",
+                    },
+                  })}
+                />
+                {errors.phoneNumber && (
+                  <p className="text-sm text-red-400">{errors.phoneNumber.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Input
+                  id="identityNumber"
+                  type="text"
+                  placeholder="ID/DL/Passport"
+                  autoComplete="off"
+                  className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                  {...register("identityNumber", {
+                    required: "Identity number is required",
+                    maxLength: {
+                      value: 50,
+                      message: "Identity number must be less than 50 characters",
+                    },
+                  })}
+                />
+                {errors.identityNumber && (
+                  <p className="text-sm text-red-400">{errors.identityNumber.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Wallet Address */}
+            <div className="space-y-2">
               <Input
                 id="walletAddress"
                 type="text"
-                placeholder="0x..."
+                placeholder="Address"
+                autoComplete="off"
+                className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 {...register("walletAddress", {
                   required: "Wallet address is required",
                   pattern: {
@@ -203,71 +295,73 @@ export default function Register() {
                 })}
               />
               {errors.walletAddress && (
-                <p className="text-sm text-destructive">{errors.walletAddress.message}</p>
+                <p className="text-sm text-red-400">{errors.walletAddress.message}</p>
               )}
-              <p className="text-xs text-muted-foreground">
-                This wallet will be used for withdrawals. Only admin can change it later.
-              </p>
             </div>
 
+            {/* Password */}
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name (as on ID card) *</Label>
-              <Input
-                id="fullName"
-                type="text"
-                placeholder="Enter your full name as shown on ID card"
-                {...register("fullName", {
-                  required: "Full name is required",
-                  maxLength: {
-                    value: 100,
-                    message: "Full name must be less than 100 characters",
-                  },
-                })}
-              />
-              {errors.fullName && (
-                <p className="text-sm text-destructive">{errors.fullName.message}</p>
-              )}
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  autoComplete="new-password"
+                  className="h-[60px] text-base px-[22px] pr-[58px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                  {...register("password", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 6,
+                      message: "Password must be at least 6 characters",
+                    },
+                  })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-[18px] top-1/2 -translate-y-1/2 text-accent-red hover:text-accent-red-hover transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
+                </button>
+              </div>
+              {errors.password && <p className="text-sm text-red-400">{errors.password.message}</p>}
             </div>
 
+            {/* Confirm Password */}
             <div className="space-y-2">
-              <Label htmlFor="phoneNumber">Phone Number *</Label>
-              <Input
-                id="phoneNumber"
-                type="tel"
-                placeholder="Enter your phone number"
-                {...register("phoneNumber", {
-                  required: "Phone number is required",
-                  maxLength: {
-                    value: 20,
-                    message: "Phone number must be less than 20 characters",
-                  },
-                })}
-              />
-              {errors.phoneNumber && (
-                <p className="text-sm text-destructive">{errors.phoneNumber.message}</p>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm Password"
+                  autoComplete="new-password"
+                  className="h-[60px] text-base px-[22px] pr-[58px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                  {...register("confirmPassword", {
+                    required: "Please confirm your password",
+                    validate: (value) => {
+                      const password = watch("password");
+                      return value === password || "Passwords do not match";
+                    },
+                  })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-[18px] top-1/2 -translate-y-1/2 text-accent-red hover:text-accent-red-hover transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-6 h-6" />
+                  ) : (
+                    <Eye className="w-6 h-6" />
+                  )}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-400">{errors.confirmPassword.message}</p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="identityNumber">Identity Number (ID Card/Passport) *</Label>
-              <Input
-                id="identityNumber"
-                type="text"
-                placeholder="Enter your ID card, passport, or identity number"
-                {...register("identityNumber", {
-                  required: "Identity number is required",
-                  maxLength: {
-                    value: 50,
-                    message: "Identity number must be less than 50 characters",
-                  },
-                })}
-              />
-              {errors.identityNumber && (
-                <p className="text-sm text-destructive">{errors.identityNumber.message}</p>
-              )}
-            </div>
-
-            {/* Hidden referrerCode field - auto-filled from URL */}
+            {/* Referrer Code */}
             <input
               type="hidden"
               {...register("referrerCode", {
@@ -276,30 +370,32 @@ export default function Register() {
             />
             {referrerCodeFromUrl && (
               <div className="space-y-2">
-                <Label>Referrer Code</Label>
-                <div className="bg-primary/10 p-3 rounded-lg border border-primary/20">
+                <div className="p-3 border border-gray-700 rounded-lg bg-gray-800/50">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm">
-                      Referred by: <Badge variant="default">{referrerCodeFromUrl}</Badge>
+                    <p className="text-sm text-white">
+                      Referred by:{" "}
+                      <Badge variant="default" className="text-white bg-gray-700">
+                        {referrerCodeFromUrl}
+                      </Badge>
                     </p>
                     {referrerCodeStatus === "checking" && (
-                      <span className="text-xs text-muted-foreground">Checking...</span>
+                      <span className="text-xs text-gray-400">Checking...</span>
                     )}
                     {referrerCodeStatus === "valid" && (
-                      <span className="text-xs text-green-600">✓ Valid</span>
+                      <span className="text-xs text-green-400">✓ Valid</span>
                     )}
                     {referrerCodeStatus === "invalid" && (
-                      <span className="text-xs text-destructive">✗ Invalid</span>
+                      <span className="text-xs text-red-400">✗ Invalid</span>
                     )}
                   </div>
                   {referrerCodeMessage && (
                     <p
                       className={`text-xs mt-2 ${
                         referrerCodeStatus === "valid"
-                          ? "text-green-600"
+                          ? "text-green-400"
                           : referrerCodeStatus === "invalid"
-                          ? "text-destructive"
-                          : "text-muted-foreground"
+                          ? "text-red-400"
+                          : "text-gray-400"
                       }`}
                     >
                       {referrerCodeMessage}
@@ -310,11 +406,12 @@ export default function Register() {
             )}
             {!referrerCodeFromUrl && (
               <div className="space-y-2">
-                <Label htmlFor="referrerCode">Referrer Code *</Label>
                 <Input
                   id="referrerCode"
                   type="text"
-                  placeholder="Enter referrer code (e.g., root001)"
+                  placeholder="Referrer Code"
+                  autoComplete="off"
+                  className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   {...register("referrerCode", {
                     required: "Referrer code is required",
                     onChange: (e) => {
@@ -323,34 +420,45 @@ export default function Register() {
                   })}
                 />
                 {referrerCodeStatus === "checking" && (
-                  <p className="text-xs text-muted-foreground">Checking referrer code...</p>
+                  <p className="text-xs text-gray-400">Checking referrer code...</p>
                 )}
                 {referrerCodeStatus === "valid" && (
-                  <p className="text-xs text-green-600">✓ {referrerCodeMessage}</p>
+                  <p className="text-xs text-green-400">✓ {referrerCodeMessage}</p>
                 )}
                 {referrerCodeStatus === "invalid" && (
-                  <p className="text-xs text-destructive">✗ {referrerCodeMessage}</p>
+                  <p className="text-xs text-red-400">✗ {referrerCodeMessage}</p>
                 )}
                 {errors.referrerCode && (
-                  <p className="text-sm text-destructive">{errors.referrerCode.message}</p>
+                  <p className="text-sm text-red-400">{errors.referrerCode.message}</p>
                 )}
               </div>
             )}
 
-            <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? "Registering..." : "Register"}
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full h-[60px] text-base font-medium bg-gray-800/90 hover:bg-gray-700/90 text-white border-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Registering..." : "Confirm"}
             </Button>
+
+            {/* Login Link */}
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-gray-400">Already have an account?</span>
+              <Link
+                to="/login"
+                className="font-medium transition-colors text-accent-red hover:text-accent-red-hover hover:underline"
+              >
+                Login
+              </Link>
+            </div>
           </form>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-muted-foreground">
-            Already have an account?{" "}
-            <Link to="/login" className="text-primary hover:underline font-medium">
-              Login here
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
+
+          {/* Footer */}
+          <AuthFooter />
+        </div>
+      </div>
     </div>
   );
 }

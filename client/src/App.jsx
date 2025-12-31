@@ -10,6 +10,8 @@ import Blog from "./pages/Blog";
 import FAQ from "./pages/FAQ";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import AdminLogin from "./pages/admin/Login";
 
@@ -50,10 +52,14 @@ function App() {
           <Route path="affiliate" element={<Affiliate />} />
           <Route path="blog" element={<Blog />} />
           <Route path="faq" element={<FAQ />} />
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
           <Route path="verify-email" element={<VerifyEmail />} />
         </Route>
+
+        {/* Login and Register pages without Layout (no header/footer) */}
+        <Route path="login" element={<Login />} />
+        <Route path="register" element={<Register />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="reset-password" element={<ResetPassword />} />
 
         {/* Protected user routes */}
         <Route
