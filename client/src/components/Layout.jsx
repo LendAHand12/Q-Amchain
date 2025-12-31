@@ -1,55 +1,150 @@
+import { useState } from "react";
 import { Outlet, Link } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
+import { Menu, X } from "lucide-react";
+import logo from "../assets/logo.png";
 
 export default function Layout() {
   const { isAuthenticated, isAdminAuthenticated } = useAuthStore();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm sticky top-0 z-50">
         <nav className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link to="/" className="text-2xl font-bold text-blue-600">
-              Q-Amchain
+            <Link to="/" className="flex items-center">
+              <img src={logo} alt="Q-Amchain" className="h-8 sm:h-10 w-auto" />
             </Link>
 
-            <div className="flex items-center gap-6">
-              <Link to="/packages" className="text-gray-700 hover:text-blue-600">
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center gap-6">
+              <Link to="/packages" className="text-gray-700 hover:text-blue-600 transition-colors">
                 Packages
               </Link>
-              <Link to="/affiliate" className="text-gray-700 hover:text-blue-600">
+              <Link to="/affiliate" className="text-gray-700 hover:text-blue-600 transition-colors">
                 Affiliate
               </Link>
-              <Link to="/blog" className="text-gray-700 hover:text-blue-600">
+              <Link to="/blog" className="text-gray-700 hover:text-blue-600 transition-colors">
                 Blog
               </Link>
-              <Link to="/faq" className="text-gray-700 hover:text-blue-600">
+              <Link to="/faq" className="text-gray-700 hover:text-blue-600 transition-colors">
                 FAQ
               </Link>
               {!isAuthenticated && !isAdminAuthenticated ? (
                 <>
-                  <Link to="/login" className="px-4 py-2 text-gray-700 hover:text-blue-600">
+                  <Link
+                    to="/login"
+                    className="px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors"
+                  >
                     Login
                   </Link>
                   <Link
                     to="/register"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     Register
                   </Link>
                 </>
               ) : isAdminAuthenticated ? (
-                <Link to="/admin" className="px-4 py-2 text-gray-700 hover:text-blue-600">
+                <Link
+                  to="/admin"
+                  className="px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors"
+                >
                   Admin Panel
                 </Link>
               ) : (
-                <Link to="/dashboard" className="px-4 py-2 text-gray-700 hover:text-blue-600">
+                <Link
+                  to="/dashboard"
+                  className="px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors"
+                >
                   Dashboard
                 </Link>
               )}
             </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 text-gray-700 hover:text-blue-600 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
+
+          {/* Mobile Navigation */}
+          {mobileMenuOpen && (
+            <div className="lg:hidden mt-4 pb-4 border-t border-gray-200">
+              <div className="flex flex-col gap-4 pt-4">
+                <Link
+                  to="/packages"
+                  className="text-gray-700 hover:text-blue-600 transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Packages
+                </Link>
+                <Link
+                  to="/affiliate"
+                  className="text-gray-700 hover:text-blue-600 transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Affiliate
+                </Link>
+                <Link
+                  to="/blog"
+                  className="text-gray-700 hover:text-blue-600 transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Blog
+                </Link>
+                <Link
+                  to="/faq"
+                  className="text-gray-700 hover:text-blue-600 transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  FAQ
+                </Link>
+                <div className="pt-2 border-t border-gray-200">
+                  {!isAuthenticated && !isAdminAuthenticated ? (
+                    <>
+                      <Link
+                        to="/login"
+                        className="block px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors mb-2"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Login
+                      </Link>
+                      <Link
+                        to="/register"
+                        className="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Register
+                      </Link>
+                    </>
+                  ) : isAdminAuthenticated ? (
+                    <Link
+                      to="/admin"
+                      className="block px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Admin Panel
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/dashboard"
+                      className="block px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </nav>
       </header>
 
@@ -63,7 +158,7 @@ export default function Layout() {
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-lg font-bold mb-4">Q-Amchain</h3>
+              <img src={logo} alt="Q-Amchain" className="h-8 w-auto mb-4" />
               <p className="text-gray-400">Validator packages and affiliate platform</p>
             </div>
             <div>

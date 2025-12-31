@@ -1,5 +1,6 @@
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
+import logo from "../assets/logo.png";
 
 export default function AdminLayout() {
   const { admin, adminLogout } = useAuthStore();
@@ -32,7 +33,7 @@ export default function AdminLayout() {
       {/* Sidebar */}
       <aside className="w-64 bg-gray-800 text-white fixed h-full">
         <div className="p-6 border-b border-gray-700">
-          <h1 className="text-xl font-bold">Q-Amchain</h1>
+          <img src={logo} alt="Q-Amchain" className="h-8 w-auto mb-2" />
           <p className="text-sm text-gray-400 mt-1">Admin Panel</p>
         </div>
 
@@ -55,9 +56,7 @@ export default function AdminLayout() {
           <div className="mb-4">
             <p className="text-sm text-gray-400">Logged in as</p>
             <p className="font-semibold">{admin?.username || "Admin"}</p>
-            {admin?.roleId && (
-              <p className="text-xs text-gray-500 mt-1">{admin.roleId.name}</p>
-            )}
+            {admin?.roleId && <p className="text-xs text-gray-500 mt-1">{admin.roleId.name}</p>}
           </div>
           <button
             onClick={handleLogout}
@@ -77,10 +76,7 @@ export default function AdminLayout() {
               {menuItems.find((item) => isActive(item.path))?.label || "Admin"}
             </h2>
             <div className="flex items-center gap-4">
-              <Link
-                to="/"
-                className="text-sm text-gray-600 hover:text-gray-800"
-              >
+              <Link to="/" className="text-sm text-gray-600 hover:text-gray-800">
                 View Site
               </Link>
             </div>
@@ -95,4 +91,3 @@ export default function AdminLayout() {
     </div>
   );
 }
-

@@ -344,15 +344,3 @@ Không auto payout
 Không lưu private key trên server
 
 Admin role phân cấp
-
-Admin user created!
-Email: ameritec@gmail.com
-Username: Ameritec
-Password: Pierre@@1968@@@@@
-Role: Super Admin
-
-Root user created:
-Email: nguyenpierre68@gmail.com
-Username: NguyenPierre
-Password: Pierre@@1968@@@@@
-RefCode: nguyenpierre

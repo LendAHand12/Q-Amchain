@@ -3,6 +3,7 @@ import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import logo from "../assets/logo.png";
 
 export default function UserLayout() {
   const { user, logout } = useAuthStore();
@@ -51,10 +52,10 @@ export default function UserLayout() {
           <div className="p-6 border-b border-gray-700">
             <Link
               to="/"
-              className="text-xl font-bold hover:text-blue-400 transition-colors"
+              className="block mb-2"
               onClick={() => setSidebarOpen(false)}
             >
-              Q-Amchain
+              <img src={logo} alt="Q-Amchain" className="h-8 w-auto" />
             </Link>
             <p className="text-sm text-gray-400 mt-1">User Dashboard</p>
           </div>

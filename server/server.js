@@ -20,6 +20,10 @@ import blogRoutes from "./routes/blog.routes.js";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy - Required when behind reverse proxy (nginx, load balancer, cloudflare, etc.)
+// This allows Express to correctly identify the client's IP address from X-Forwarded-For header
+app.set("trust proxy", true);
+
 // Middleware
 app.use(
   cors({
