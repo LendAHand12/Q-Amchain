@@ -1,8 +1,12 @@
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 import Admin from "../models/Admin.model.js";
 import Role from "../models/Role.model.js";
-import bcrypt from "bcryptjs";
 
-export const createAdminUser = async () => {
+// Load environment variables
+dotenv.config();
+
+const createAdminUser = async () => {
   try {
     // Create default super admin role if not exists
     let superAdminRole = await Role.findOne({ name: "Super Admin" });
@@ -68,11 +72,43 @@ export const createAdminUser = async () => {
       });
 
       await admin.save();
-      console.log("✅ Admin user created:", adminEmail, "Password:", adminPassword);
+      console.log("✅ Admin user created successfully!");
+      console.log("   Email:", adminEmail);
+      console.log("   Username:", adminName);
+      console.log("   Password:", adminPassword);
+      console.log("   Role: Super Admin");
     } else {
       console.log("ℹ️ Admin already exists:", adminEmail);
+      console.log("   Username:", existingAdmin.username);
+      console.log("   Role:", superAdminRole.name);
+      console.log("\n💡 To reset password, delete the admin first or use a different email.");
     }
   } catch (error) {
     console.error("❌ Error creating admin user:", error);
+    throw error;
   }
 };
+
+// Run the script
+const run = async () => {
+  try {
+    // Connect to MongoDB
+    await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/q-amchain");
+    console.log("✅ MongoDB connected");
+
+    // Create admin user
+    await createAdminUser();
+
+    console.log("✅ Script completed successfully");
+  } catch (error) {
+    console.error("❌ Script failed:", error);
+    process.exit(1);
+  } finally {
+    // Close MongoDB connection
+    await mongoose.disconnect();
+    console.log("✅ MongoDB disconnected");
+  }
+};
+
+// Run the script
+run();
