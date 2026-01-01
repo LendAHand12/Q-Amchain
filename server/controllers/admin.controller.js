@@ -67,32 +67,38 @@ export const getUsers = async (req, res) => {
       status: "completed",
     })
       .populate("packageId", "name")
-      .select("userId packageId");
+      .select("userId packageId packageInfo");
 
-    // Get assigned packages
+    // Get users with assigned packages to check isPackageAssigned flag
     const usersWithAssignedPackages = await User.find({
       _id: { $in: userIds },
       assignedPackageId: { $ne: null },
     })
-      .populate("assignedPackageId", "name")
       .select("_id assignedPackageId isPackageAssigned");
 
-    // Create a map of userId -> packageName and isAssigned
-    const packageMap = {};
-    purchasedPackages.forEach((tx) => {
-      if (tx.packageId) {
-        packageMap[tx.userId.toString()] = {
-          name: tx.packageId.name,
-          isAssigned: false,
-        };
-      }
+    // Create a map of userId -> isPackageAssigned
+    const isAssignedMap = {};
+    usersWithAssignedPackages.forEach((user) => {
+      isAssignedMap[user._id.toString()] = user.isPackageAssigned || false;
     });
 
-    usersWithAssignedPackages.forEach((user) => {
-      if (user.assignedPackageId) {
-        packageMap[user._id.toString()] = {
-          name: user.assignedPackageId.name,
-          isAssigned: true,
+    // Create a map of userId -> packageName and isAssigned
+    // Use packageInfo if available (stored at purchase/assignment time), otherwise use populated packageId
+    const packageMap = {};
+    purchasedPackages.forEach((tx) => {
+      const txObj = tx.toObject();
+      const isAssigned = isAssignedMap[txObj.userId.toString()] || false;
+      
+      // Use packageInfo if available (stored at purchase/assignment time), otherwise use populated packageId
+      if (txObj.packageInfo && txObj.packageInfo.name) {
+        packageMap[txObj.userId.toString()] = {
+          name: txObj.packageInfo.name,
+          isAssigned: isAssigned,
+        };
+      } else if (txObj.packageId) {
+        packageMap[txObj.userId.toString()] = {
+          name: txObj.packageId.name,
+          isAssigned: isAssigned,
         };
       }
     });
