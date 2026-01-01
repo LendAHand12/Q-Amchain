@@ -129,17 +129,41 @@ export const getDashboard = async (req, res) => {
     const f2Earnings = f2Commissions[0]?.total || 0;
 
     // Get recent transactions
+    // Use packageInfo if available (stored at purchase time), otherwise populate from Package
     const recentTransactions = await Transaction.find({ userId: req.user._id })
       .sort({ createdAt: -1 })
       .limit(5)
       .populate("packageId", "name");
+    
+    const recentTransactionsWithPackageInfo = recentTransactions.map((tx) => {
+      const txObj = tx.toObject();
+      if (txObj.packageInfo && txObj.packageInfo.name) {
+        txObj.packageId = {
+          _id: txObj.packageId?._id || null,
+          name: txObj.packageInfo.name,
+        };
+      }
+      return txObj;
+    });
 
     // Get recent commissions
+    // Use packageInfo if available (stored at purchase time), otherwise populate from Package
     const recentCommissions = await Commission.find({ userId: req.user._id })
       .sort({ createdAt: -1 })
       .limit(5)
       .populate("buyerId", "username")
       .populate("packageId", "name");
+    
+    const recentCommissionsWithPackageInfo = recentCommissions.map((commission) => {
+      const commObj = commission.toObject();
+      if (commObj.packageInfo && commObj.packageInfo.name) {
+        commObj.packageId = {
+          _id: commObj.packageId?._id || null,
+          name: commObj.packageInfo.name,
+        };
+      }
+      return commObj;
+    });
 
     // Get purchased package name (from transaction or assigned package)
     const purchasedPackage = await Transaction.findOne({
@@ -149,6 +173,16 @@ export const getDashboard = async (req, res) => {
     })
       .populate("packageId", "name")
       .sort({ createdAt: -1 });
+
+    // Use packageInfo if available (stored at purchase time), otherwise use populated packageId
+    let purchasedPackageName = null;
+    if (purchasedPackage) {
+      if (purchasedPackage.packageInfo && purchasedPackage.packageInfo.name) {
+        purchasedPackageName = purchasedPackage.packageInfo.name;
+      } else {
+        purchasedPackageName = purchasedPackage.packageId?.name || null;
+      }
+    }
 
     // Check if user has assigned package
     let assignedPackage = null;
@@ -166,9 +200,9 @@ export const getDashboard = async (req, res) => {
         refCode: user.refCode,
         f1Earnings,
         f2Earnings,
-        recentTransactions,
-        recentCommissions,
-        purchasedPackageName: purchasedPackage?.packageId?.name || assignedPackage?.name || null,
+        recentTransactions: recentTransactionsWithPackageInfo,
+        recentCommissions: recentCommissionsWithPackageInfo,
+        purchasedPackageName: purchasedPackageName || assignedPackage?.name || null,
         isPackageAssigned: user.isPackageAssigned || false,
       },
     });
@@ -217,12 +251,16 @@ export const getReferralTree = async (req, res) => {
       status: "completed",
     })
       .populate("packageId", "name")
-      .select("userId packageId");
+      .select("userId packageId packageInfo");
 
     const referralPackageMap = {};
     referralPackages.forEach((tx) => {
-      if (tx.packageId) {
-        referralPackageMap[tx.userId.toString()] = tx.packageId.name;
+      const txObj = tx.toObject();
+      // Use packageInfo if available (stored at purchase time), otherwise use populated packageId
+      if (txObj.packageInfo && txObj.packageInfo.name) {
+        referralPackageMap[txObj.userId.toString()] = txObj.packageInfo.name;
+      } else if (txObj.packageId) {
+        referralPackageMap[txObj.userId.toString()] = txObj.packageId.name;
       }
     });
 
@@ -265,12 +303,33 @@ export const getMyPackages = async (req, res) => {
       .populate("packageId", "name description price")
       .sort({ createdAt: -1 });
 
+    // Map transactions to use packageInfo if available (stored at purchase time)
+    const transactionsWithPackageInfo = transactions.map((tx) => {
+      const txObj = tx.toObject();
+      let packageData = null;
+      
+      // Use packageInfo if available (stored at purchase time), otherwise use populated packageId
+      if (txObj.packageInfo && txObj.packageInfo.name) {
+        packageData = {
+          _id: txObj.packageId?._id || null,
+          name: txObj.packageInfo.name,
+          description: txObj.packageInfo.description || null,
+          price: txObj.packageInfo.price,
+        };
+      } else if (txObj.packageId) {
+        // Fallback to populated packageId
+        packageData = txObj.packageId;
+      }
+      
+      return {
+        ...txObj,
+        package: packageData,
+      };
+    });
+
     res.json({
       success: true,
-      data: transactions.map((tx) => ({
-        ...tx.toObject(),
-        package: tx.packageId,
-      })),
+      data: transactionsWithPackageInfo,
     });
   } catch (error) {
     console.error("Get my packages error:", error);
@@ -293,12 +352,25 @@ export const getCommissions = async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
 
+    // Map commissions to use packageInfo if available (stored at purchase time)
+    const commissionsWithPackageInfo = commissions.map((commission) => {
+      const commObj = commission.toObject();
+      if (commObj.packageInfo && commObj.packageInfo.name) {
+        // Use stored package info (snapshot at purchase time)
+        commObj.packageId = {
+          _id: commObj.packageId?._id || null,
+          name: commObj.packageInfo.name,
+        };
+      }
+      return commObj;
+    });
+
     const total = await Commission.countDocuments({ userId: req.user._id });
 
     res.json({
       success: true,
       data: {
-        commissions,
+        commissions: commissionsWithPackageInfo,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),

@@ -11,6 +11,29 @@ const transactionSchema = new mongoose.Schema({
     ref: 'Package',
     default: null
   },
+  // Store package info at time of purchase to prevent issues if package is modified/deleted
+  packageInfo: {
+    name: {
+      type: String,
+      default: null
+    },
+    price: {
+      type: Number,
+      default: null
+    },
+    description: {
+      type: String,
+      default: null
+    },
+    commissionLv1: {
+      type: Number,
+      default: null
+    },
+    commissionLv2: {
+      type: Number,
+      default: null
+    }
+  },
   type: {
     type: String,
     enum: ['payment', 'commission', 'withdrawal', 'refund'],

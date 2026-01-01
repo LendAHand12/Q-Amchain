@@ -21,7 +21,7 @@ export default function Commissions() {
 
   const fetchCommissions = async () => {
     try {
-      const response = await api.get(`/commissions?page=${currentPage}&limit=20`)
+      const response = await api.get(`/users/commissions?page=${currentPage}&limit=20`)
       setCommissions(response.data.data.commissions || [])
       setPagination(response.data.data.pagination)
     } catch (error) {
@@ -122,7 +122,7 @@ export default function Commissions() {
                 </TableRow>
               ) : (
                 commissions.map((commission) => (
-                  <TableRow key={commission._id}>
+                  <TableRow key={commission._id || commission.id}>
                     <TableCell>
                       {formatDate(commission.createdAt)}
                     </TableCell>

@@ -21,6 +21,29 @@ const commissionSchema = new mongoose.Schema({
     ref: 'Package',
     required: true
   },
+  // Store package info at time of purchase to prevent issues if package is modified/deleted
+  packageInfo: {
+    name: {
+      type: String,
+      default: null
+    },
+    price: {
+      type: Number,
+      default: null
+    },
+    description: {
+      type: String,
+      default: null
+    },
+    commissionLv1: {
+      type: Number,
+      default: null
+    },
+    commissionLv2: {
+      type: Number,
+      default: null
+    }
+  },
   level: {
     type: Number,
     required: true,

@@ -5,7 +5,13 @@ import WalletConnect from "./WalletConnect";
 import api from "../utils/api";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -78,7 +84,9 @@ export default function PaymentModal({
 
     if (balanceNum < amountNum) {
       toast.error(
-        `Insufficient USDT balance. You have ${balanceNum.toFixed(4)} USDT, need ${amountNum} USDT`
+        `Insufficient USDT balance. You have ${balanceNum.toFixed(
+          4
+        )} USDT, need ${amountNum} USDT`
       );
       return;
     }
@@ -93,7 +101,8 @@ export default function PaymentModal({
         packageData.price.toString(),
         address
       );
-      // const transactionHash = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+      // const transactionHash =
+      //   "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
 
       if (transactionHash) {
         // Verify payment with backend
@@ -114,11 +123,8 @@ export default function PaymentModal({
   };
 
   const verifyPayment = async (transactionHash) => {
-    // Early return if not verifying (shouldn't happen, but safety check)
-    if (!verifying) {
-      return;
-    }
-
+    // No need to check verifying state here - if this function is called, it means we're verifying
+    // The check in handlePayment is sufficient to prevent duplicate calls
     try {
       const response = await api.post("/payments/verify", {
         packageId: packageData._id,
@@ -197,11 +203,15 @@ export default function PaymentModal({
           {/* Package Summary */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base sm:text-lg">Package Summary</CardTitle>
+              <CardTitle className="text-base sm:text-lg">
+                Package Summary
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 pt-0">
               <div className="flex justify-between items-start gap-2">
-                <span className="text-muted-foreground text-sm sm:text-base">Package:</span>
+                <span className="text-muted-foreground text-sm sm:text-base">
+                  Package:
+                </span>
                 <span className="font-medium text-sm sm:text-base text-right break-words">
                   {packageData.name}
                 </span>
@@ -229,7 +239,10 @@ export default function PaymentModal({
                 <WalletConnect />
               </div>
               {!isCorrectNetwork && isConnected && (
-                <Badge variant="destructive" className="text-xs sm:text-sm w-full justify-center">
+                <Badge
+                  variant="destructive"
+                  className="text-xs sm:text-sm w-full justify-center"
+                >
                   Please switch to BSC Mainnet
                 </Badge>
               )}
@@ -242,7 +255,10 @@ export default function PaymentModal({
                     </span>
                   </div>
                   {parseFloat(usdtBalance) < parseFloat(packageData.price) && (
-                    <Badge variant="destructive" className="text-xs w-full justify-center mt-1">
+                    <Badge
+                      variant="destructive"
+                      className="text-xs w-full justify-center mt-1"
+                    >
                       Insufficient balance
                     </Badge>
                   )}
@@ -254,7 +270,9 @@ export default function PaymentModal({
           {/* Payment Address */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base sm:text-lg">Payment Address</CardTitle>
+              <CardTitle className="text-base sm:text-lg">
+                Payment Address
+              </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <p

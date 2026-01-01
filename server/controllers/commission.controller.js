@@ -9,9 +9,22 @@ export const getCommissions = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(100);
 
+    // Map commissions to use packageInfo if available (stored at purchase time)
+    const commissionsWithPackageInfo = commissions.map((commission) => {
+      const commObj = commission.toObject();
+      if (commObj.packageInfo && commObj.packageInfo.name) {
+        // Use stored package info (snapshot at purchase time)
+        commObj.packageId = {
+          _id: commObj.packageId?._id || null,
+          name: commObj.packageInfo.name,
+        };
+      }
+      return commObj;
+    });
+
     res.json({
       success: true,
-      data: commissions
+      data: commissionsWithPackageInfo
     });
   } catch (error) {
     console.error('Get commissions error:', error);

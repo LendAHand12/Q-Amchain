@@ -16,6 +16,7 @@ export const calculateCommissions = async (transaction, packageData) => {
       const lv1Amount = (transaction.amount * packageData.commissionLv1) / 100;
       
       // Create commission record
+      // Store package info at time of purchase to prevent issues if package is modified/deleted
       const commission1 = new Commission({
         userId: parent._id,
         transactionId: transaction._id,
@@ -25,7 +26,14 @@ export const calculateCommissions = async (transaction, packageData) => {
         amount: lv1Amount,
         percentage: packageData.commissionLv1,
         orderAmount: transaction.amount,
-        status: 'credited'
+        status: 'credited',
+        packageInfo: {
+          name: packageData.name,
+          price: packageData.price,
+          description: packageData.description || null,
+          commissionLv1: packageData.commissionLv1,
+          commissionLv2: packageData.commissionLv2,
+        },
       });
       await commission1.save();
 
@@ -48,13 +56,21 @@ export const calculateCommissions = async (transaction, packageData) => {
       });
 
       // Create transaction record
+      // Store package info at time of purchase to prevent issues if package is modified/deleted
       await Transaction.create({
         userId: parent._id,
         packageId: packageData._id,
         type: 'commission',
         amount: lv1Amount,
         status: 'completed',
-        description: `Level 1 commission from ${buyer.username}`
+        description: `Level 1 commission from ${buyer.username}`,
+        packageInfo: {
+          name: packageData.name,
+          price: packageData.price,
+          description: packageData.description || null,
+          commissionLv1: packageData.commissionLv1,
+          commissionLv2: packageData.commissionLv2,
+        },
       });
 
       // Level 2 Commission (F2)
@@ -72,7 +88,14 @@ export const calculateCommissions = async (transaction, packageData) => {
             amount: lv2Amount,
             percentage: packageData.commissionLv2,
             orderAmount: transaction.amount,
-            status: 'credited'
+            status: 'credited',
+            packageInfo: {
+              name: packageData.name,
+              price: packageData.price,
+              description: packageData.description || null,
+              commissionLv1: packageData.commissionLv1,
+              commissionLv2: packageData.commissionLv2,
+            },
           });
           await commission2.save();
 
@@ -100,7 +123,14 @@ export const calculateCommissions = async (transaction, packageData) => {
             type: 'commission',
             amount: lv2Amount,
             status: 'completed',
-            description: `Level 2 commission from ${buyer.username}`
+            description: `Level 2 commission from ${buyer.username}`,
+            packageInfo: {
+              name: packageData.name,
+              price: packageData.price,
+              description: packageData.description || null,
+              commissionLv1: packageData.commissionLv1,
+              commissionLv2: packageData.commissionLv2,
+            },
           });
         }
       }

@@ -10,6 +10,7 @@ dotenv.config();
 export const verifyPayment = async (req, res) => {
   try {
     const { packageId, transactionHash } = req.body;
+    console.log({packageId, transactionHash})
 
     // Check if user has already purchased or been assigned a package (only 1 package per user)
     const user = await User.findById(req.user._id);
@@ -61,6 +62,7 @@ export const verifyPayment = async (req, res) => {
     // Create transaction record
     // Note: We trust the transaction hash from wallet connect since it already confirmed success
     // The payment address is validated on frontend before sending transaction
+    // Store package info at time of purchase to prevent issues if package is modified/deleted
     const transaction = await Transaction.create({
       userId: req.user._id,
       packageId: packageData._id,
@@ -72,6 +74,13 @@ export const verifyPayment = async (req, res) => {
       fromAddress: null, // Not needed, wallet connect already handled
       toAddress: paymentAddress,
       description: `Payment for ${packageData.name}`,
+      packageInfo: {
+        name: packageData.name,
+        price: packageData.price,
+        description: packageData.description || null,
+        commissionLv1: packageData.commissionLv1,
+        commissionLv2: packageData.commissionLv2,
+      },
     });
 
     // Update user packages count

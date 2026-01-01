@@ -141,18 +141,50 @@ export const getUserById = async (req, res) => {
     }
 
     // Get all user's transactions (all types: payment, commission, withdrawal)
+    // Use packageInfo if available (stored at purchase time), otherwise populate from Package
     const transactions = await Transaction.find({
       userId: user._id,
     })
-      .populate("packageId", "name price")
+      .populate("packageId", "name price description")
       .sort({ createdAt: -1 });
+    
+    // Map transactions to use packageInfo if available
+    const transactionsWithPackageInfo = transactions.map((tx) => {
+      const txObj = tx.toObject();
+      if (txObj.packageInfo && txObj.packageInfo.name) {
+        // Use stored package info (snapshot at purchase time)
+        txObj.packageId = {
+          _id: txObj.packageId?._id || null,
+          name: txObj.packageInfo.name,
+          price: txObj.packageInfo.price,
+          description: txObj.packageInfo.description,
+        };
+      }
+      return txObj;
+    });
 
     // Get user's commissions (earned from referrals)
+    // Use packageInfo if available (stored at purchase time), otherwise populate from Package
     const commissions = await Commission.find({ userId: user._id })
       .populate("buyerId", "username email refCode")
-      .populate("packageId", "name")
+      .populate("packageId", "name price description")
       .populate("transactionId", "transactionHash amount")
       .sort({ createdAt: -1 });
+    
+    // Map commissions to use packageInfo if available
+    const commissionsWithPackageInfo = commissions.map((commission) => {
+      const commObj = commission.toObject();
+      if (commObj.packageInfo && commObj.packageInfo.name) {
+        // Use stored package info (snapshot at purchase time)
+        commObj.packageId = {
+          _id: commObj.packageId?._id || null,
+          name: commObj.packageInfo.name,
+          price: commObj.packageInfo.price,
+          description: commObj.packageInfo.description,
+        };
+      }
+      return commObj;
+    });
 
     // Get referral tree (F1 and F2) - exclude deleted users
     const directReferrals = await User.find({ 
@@ -179,12 +211,16 @@ export const getUserById = async (req, res) => {
       status: "completed",
     })
       .populate("packageId", "name")
-      .select("userId packageId");
+      .select("userId packageId packageInfo");
 
     const referralPackageMap = {};
     referralPackages.forEach((tx) => {
-      if (tx.packageId) {
-        referralPackageMap[tx.userId.toString()] = tx.packageId.name;
+      const txObj = tx.toObject();
+      // Use packageInfo if available (stored at purchase time), otherwise use populated packageId
+      if (txObj.packageInfo && txObj.packageInfo.name) {
+        referralPackageMap[txObj.userId.toString()] = txObj.packageInfo.name;
+      } else if (txObj.packageId) {
+        referralPackageMap[txObj.userId.toString()] = txObj.packageId.name;
       }
     });
 
@@ -213,6 +249,23 @@ export const getUserById = async (req, res) => {
       .populate("packageId", "name price description")
       .sort({ createdAt: -1 });
 
+    // Use packageInfo if available (stored at purchase time), otherwise use populated packageId
+    let purchasedPackageData = null;
+    if (purchasedPackage) {
+      if (purchasedPackage.packageInfo && purchasedPackage.packageInfo.name) {
+        // Use stored package info (snapshot at purchase time)
+        purchasedPackageData = {
+          _id: purchasedPackage.packageId?._id || null,
+          name: purchasedPackage.packageInfo.name,
+          price: purchasedPackage.packageInfo.price,
+          description: purchasedPackage.packageInfo.description,
+        };
+      } else {
+        // Fallback to populated packageId
+        purchasedPackageData = purchasedPackage.packageId;
+      }
+    }
+
     // Check if user has assigned package (if no purchased package)
     let assignedPackage = null;
     if (!purchasedPackage && user.assignedPackageId) {
@@ -223,14 +276,14 @@ export const getUserById = async (req, res) => {
       success: true,
       data: {
         user,
-        transactions,
-        commissions,
+        transactions: transactionsWithPackageInfo,
+        commissions: commissionsWithPackageInfo,
         referrals: {
           f1: f1WithPackages,
           f2: f2WithPackages,
         },
         withdrawals,
-        purchasedPackage: purchasedPackage?.packageId || assignedPackage || null,
+        purchasedPackage: purchasedPackageData || assignedPackage || null,
         isPackageAssigned: user.isPackageAssigned || false,
       },
     });
@@ -1027,6 +1080,7 @@ export const assignPackage = async (req, res) => {
     await user.save();
 
     // Create transaction record with empty hash (no commission will be created)
+    // Store package info at time of assignment to prevent issues if package is modified/deleted
     await Transaction.create({
       userId: user._id,
       packageId: packageData._id,
@@ -1038,6 +1092,13 @@ export const assignPackage = async (req, res) => {
       fromAddress: null,
       toAddress: null,
       description: `Package assigned by admin: ${packageData.name}`,
+      packageInfo: {
+        name: packageData.name,
+        price: packageData.price,
+        description: packageData.description || null,
+        commissionLv1: packageData.commissionLv1,
+        commissionLv2: packageData.commissionLv2,
+      },
     });
 
     // Note: We do NOT call calculateCommissions() here
