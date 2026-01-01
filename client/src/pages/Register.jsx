@@ -282,7 +282,7 @@ export default function Register() {
               <Input
                 id="walletAddress"
                 type="text"
-                placeholder="Address"
+                placeholder="Wallet Address"
                 autoComplete="off"
                 className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 {...register("walletAddress", {

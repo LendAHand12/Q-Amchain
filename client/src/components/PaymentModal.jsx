@@ -53,6 +53,11 @@ export default function PaymentModal({
   };
 
   const handlePayment = async () => {
+    // Early return if already processing to prevent duplicate requests
+    if (loading || verifying) {
+      return;
+    }
+
     if (!isConnected || !address) {
       toast.error("Please connect your wallet first");
       return;
@@ -78,6 +83,7 @@ export default function PaymentModal({
       return;
     }
 
+    // Set loading state immediately to prevent duplicate clicks
     setLoading(true);
 
     try {
@@ -91,21 +97,28 @@ export default function PaymentModal({
 
       if (transactionHash) {
         // Verify payment with backend
+        setLoading(false); // Stop loading, start verifying
         setVerifying(true);
         await verifyPayment(transactionHash);
+      } else {
+        setLoading(false);
       }
     } catch (error) {
       console.error("Payment error:", error);
       if (error?.message) {
         toast.error(error.message);
       }
-    } finally {
       setLoading(false);
       setVerifying(false);
     }
   };
 
   const verifyPayment = async (transactionHash) => {
+    // Early return if not verifying (shouldn't happen, but safety check)
+    if (!verifying) {
+      return;
+    }
+
     try {
       const response = await api.post("/payments/verify", {
         packageId: packageData._id,
@@ -122,6 +135,9 @@ export default function PaymentModal({
     } catch (error) {
       console.error("Verify payment error:", error);
       toast.error(error.response?.data?.message || "Failed to verify payment");
+    } finally {
+      setVerifying(false);
+      setLoading(false);
     }
   };
 
@@ -156,7 +172,7 @@ export default function PaymentModal({
   return (
     <Dialog open={isModalOpen} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="max-w-md"
+        className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6"
         onEscapeKeyDown={(e) => {
           // Prevent closing with ESC during loading/verifying
           if (loading || verifying) {
@@ -170,51 +186,63 @@ export default function PaymentModal({
           }
         }}
       >
-        <DialogHeader>
-          <DialogTitle>Payment</DialogTitle>
-          <DialogDescription>Pay for {packageData.name}</DialogDescription>
+        <DialogHeader className="space-y-2">
+          <DialogTitle className="text-lg sm:text-xl">Payment</DialogTitle>
+          <DialogDescription className="text-sm sm:text-base">
+            Pay for {packageData.name}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4 mt-4">
           {/* Package Summary */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Package Summary</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base sm:text-lg">Package Summary</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Package:</span>
-                <span className="font-medium">{packageData.name}</span>
+            <CardContent className="space-y-2 pt-0">
+              <div className="flex justify-between items-start gap-2">
+                <span className="text-muted-foreground text-sm sm:text-base">Package:</span>
+                <span className="font-medium text-sm sm:text-base text-right break-words">
+                  {packageData.name}
+                </span>
               </div>
               {packageData.description && (
-                <div className="text-sm text-muted-foreground">{packageData.description}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground break-words">
+                  {packageData.description}
+                </div>
               )}
-              <Separator />
-              <div className="flex justify-between text-lg font-bold">
+              <Separator className="my-2" />
+              <div className="flex justify-between items-center text-base sm:text-lg font-bold">
                 <span>Total:</span>
-                <span>{packageData.price} USDT</span>
+                <span className="break-words">{packageData.price} USDT</span>
               </div>
             </CardContent>
           </Card>
 
           {/* Wallet Connection */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Wallet</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base sm:text-lg">Wallet</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <WalletConnect />
+            <CardContent className="space-y-3 pt-0">
+              <div className="w-full">
+                <WalletConnect />
+              </div>
               {!isCorrectNetwork && isConnected && (
-                <Badge variant="destructive">Please switch to BSC Mainnet</Badge>
+                <Badge variant="destructive" className="text-xs sm:text-sm w-full justify-center">
+                  Please switch to BSC Mainnet
+                </Badge>
               )}
               {isConnected && address && (
                 <div className="pt-2 space-y-1">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between items-center gap-2 text-xs sm:text-sm">
                     <span className="text-muted-foreground">USDT Balance:</span>
-                    <span className="font-medium">{parseFloat(usdtBalance).toFixed(4)} USDT</span>
+                    <span className="font-medium break-words text-right">
+                      {parseFloat(usdtBalance).toFixed(4)} USDT
+                    </span>
                   </div>
                   {parseFloat(usdtBalance) < parseFloat(packageData.price) && (
-                    <Badge variant="destructive" className="text-xs">
+                    <Badge variant="destructive" className="text-xs w-full justify-center mt-1">
                       Insufficient balance
                     </Badge>
                   )}
@@ -225,12 +253,12 @@ export default function PaymentModal({
 
           {/* Payment Address */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Payment Address</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base sm:text-lg">Payment Address</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               <p
-                className="font-mono text-sm break-all text-muted-foreground"
+                className="font-mono text-xs sm:text-sm break-all text-muted-foreground word-break break-words"
                 title={paymentAddress}
               >
                 {formatAddress(paymentAddress)}
@@ -239,8 +267,13 @@ export default function PaymentModal({
           </Card>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={handleCancel} disabled={loading || verifying}>
+        <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 mt-4 sm:mt-6">
+          <Button
+            variant="outline"
+            onClick={handleCancel}
+            disabled={loading || verifying}
+            className="w-full sm:w-auto order-2 sm:order-1"
+          >
             Cancel
           </Button>
           <Button
@@ -252,6 +285,7 @@ export default function PaymentModal({
               verifying ||
               parseFloat(usdtBalance) < parseFloat(packageData.price)
             }
+            className="w-full sm:w-auto order-1 sm:order-2"
           >
             {verifying
               ? "Verifying..."

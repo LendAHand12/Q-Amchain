@@ -85,11 +85,14 @@ export default function WalletConnect() {
 
   if (isConnected && address) {
     return (
-      <div className="flex items-center gap-3">
-        {!isCorrectNetwork && <Badge variant="destructive">Wrong Network</Badge>}
-        <div className="text-right">
-          <p className="text-sm font-medium">
-            {/* {address.slice(0, 6)}...{address.slice(-4)} */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full">
+        {!isCorrectNetwork && (
+          <Badge variant="destructive" className="text-xs sm:text-sm whitespace-nowrap">
+            Wrong Network
+          </Badge>
+        )}
+        <div className="text-left sm:text-right w-full sm:w-auto">
+          <p className="text-xs sm:text-sm font-medium break-all sm:break-normal">
             {address}
           </p>
         </div>
@@ -98,7 +101,7 @@ export default function WalletConnect() {
   }
 
   return (
-    <Button onClick={handleConnect} disabled={isConnecting}>
+    <Button onClick={handleConnect} disabled={isConnecting} className="w-full sm:w-auto">
       {isConnecting ? "Connecting..." : "Connect Wallet"}
     </Button>
   );

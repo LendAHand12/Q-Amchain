@@ -17,6 +17,7 @@ export default function Withdraw() {
   const [balanceHistory, setBalanceHistory] = useState([])
   const [loading, setLoading] = useState(true)
   const [historyLoading, setHistoryLoading] = useState(true)
+  const [isSubmittingForm, setIsSubmittingForm] = useState(false)
 
   const {
     register,
@@ -54,6 +55,14 @@ export default function Withdraw() {
   }
 
   const onSubmit = async (data) => {
+    // Early return if already submitting to prevent duplicate requests
+    if (isSubmittingForm) {
+      return;
+    }
+
+    // Disable form immediately
+    setIsSubmittingForm(true);
+
     try {
       await api.post('/withdrawals/request', data)
       toast.success('Withdrawal request submitted successfully')
@@ -63,6 +72,8 @@ export default function Withdraw() {
       checkAuth() // Refresh user balance
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to submit withdrawal request')
+    } finally {
+      setIsSubmittingForm(false);
     }
   }
 
@@ -104,6 +115,7 @@ export default function Withdraw() {
                   min="1"
                   max={user?.walletBalance || 0}
                   placeholder="0.00"
+                  disabled={isSubmittingForm || isSubmitting}
                   {...register("amount", {
                     required: "Amount is required",
                     min: { value: 1, message: "Minimum withdrawal is 1 USDT" },
@@ -141,6 +153,7 @@ export default function Withdraw() {
                   id="password"
                   type="password"
                   placeholder="••••••••"
+                  disabled={isSubmittingForm || isSubmitting}
                   {...register("password", { required: "Password is required" })}
                 />
                 {errors.password && (
@@ -156,6 +169,7 @@ export default function Withdraw() {
                     type="text"
                     maxLength="6"
                     placeholder="000000"
+                    disabled={isSubmittingForm || isSubmitting}
                     {...register("token", { required: "2FA code is required" })}
                   />
                   {errors.token && (
@@ -164,8 +178,12 @@ export default function Withdraw() {
                 </div>
               )}
 
-              <Button type="submit" disabled={isSubmitting} className="w-full">
-                {isSubmitting ? "Submitting..." : "Submit Withdrawal Request"}
+              <Button 
+                type="submit" 
+                disabled={isSubmittingForm || isSubmitting} 
+                className="w-full"
+              >
+                {isSubmittingForm || isSubmitting ? "Submitting..." : "Submit Withdrawal Request"}
               </Button>
             </form>
           </CardContent>
