@@ -21,7 +21,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatDate, formatDateTime } from "../../utils/dateFormat";
 import { formatAddress } from "../../utils/formatAddress";
-import { ArrowLeft, Edit, Save, X } from "lucide-react";
+import { ArrowLeft, Edit, Save, X, Trash2 } from "lucide-react";
 
 export default function UserDetails() {
   const { id } = useParams();
@@ -33,6 +33,9 @@ export default function UserDetails() {
   const [packages, setPackages] = useState([]);
   const [selectedPackageId, setSelectedPackageId] = useState("");
   const [isAssigning, setIsAssigning] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
 
   const {
     register,
@@ -113,23 +116,19 @@ export default function UserDetails() {
     }
   };
 
-  const handleLock = async () => {
-    try {
-      await api.put(`/admin/users/${id}/lock`);
-      toast.success("User locked");
-      fetchUserDetails(id);
-    } catch (error) {
-      toast.error("Failed to lock user");
-    }
-  };
 
-  const handleUnlock = async () => {
+  const handleDelete = async () => {
+    setIsDeleting(true);
     try {
-      await api.put(`/admin/users/${id}/unlock`);
-      toast.success("User unlocked");
-      fetchUserDetails(id);
+      await api.delete(`/admin/users/${id}`);
+      toast.success("User deleted successfully");
+      // Navigate back to users list after deletion
+      navigate("/admin/users");
     } catch (error) {
-      toast.error("Failed to unlock user");
+      toast.error(error.response?.data?.message || "Failed to delete user");
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -152,6 +151,19 @@ export default function UserDetails() {
       toast.error(error.response?.data?.message || "Failed to assign package");
     } finally {
       setIsAssigning(false);
+    }
+  };
+
+  const handleVerifyEmail = async () => {
+    setIsVerifyingEmail(true);
+    try {
+      await api.put(`/admin/users/${id}/verify-email`);
+      toast.success("User email verified successfully");
+      fetchUserDetails(id);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to verify email");
+    } finally {
+      setIsVerifyingEmail(false);
     }
   };
 
@@ -220,15 +232,15 @@ export default function UserDetails() {
                       </Button>
                     </>
                   )}
-                  {userDetails.user.isActive ? (
-                    <Button variant="destructive" size="sm" onClick={handleLock}>
-                      Lock User
-                    </Button>
-                  ) : (
-                    <Button variant="default" size="sm" onClick={handleUnlock}>
-                      Unlock User
-                    </Button>
-                  )}
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={() => setShowDeleteDialog(true)}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete User
+                  </Button>
                 </div>
               </div>
             </CardHeader>
@@ -387,16 +399,23 @@ export default function UserDetails() {
                     <p className="font-medium">{userDetails.referrals?.f1?.length || 0}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Status</Label>
-                    <Badge variant={userDetails.user.isActive ? "default" : "destructive"}>
-                      {userDetails.user.isActive ? "Active" : "Locked"}
-                    </Badge>
-                  </div>
-                  <div>
                     <Label className="text-muted-foreground">Email Verified</Label>
-                    <Badge variant={userDetails.user.isEmailVerified ? "default" : "outline"}>
-                      {userDetails.user.isEmailVerified ? "Verified" : "Not Verified"}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={userDetails.user.isEmailVerified ? "default" : "outline"}>
+                        {userDetails.user.isEmailVerified ? "Verified" : "Not Verified"}
+                      </Badge>
+                      {!userDetails.user.isEmailVerified && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleVerifyEmail}
+                          disabled={isVerifyingEmail}
+                          className="ml-2"
+                        >
+                          {isVerifyingEmail ? "Verifying..." : "Verify Email"}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   {userDetails.user.parentId && (
                     <div>
@@ -434,6 +453,7 @@ export default function UserDetails() {
                             size="sm"
                             onClick={() => setShowAssignPackageDialog(true)}
                             className="ml-2"
+                            type="button"
                           >
                             Assign Package
                           </Button>
@@ -796,6 +816,38 @@ export default function UserDetails() {
             </Button>
             <Button onClick={handleAssignPackage} disabled={!selectedPackageId || isAssigning}>
               {isAssigning ? "Assigning..." : "Assign Package"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete User</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete user <strong>{userDetails?.user?.username}</strong>? 
+              This action will soft delete the user and free up their unique information (email, username, refCode, phone number, wallet address, identity number) for reuse by other users.
+              <br /><br />
+              <span className="text-destructive font-semibold">This action cannot be undone.</span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? "Deleting..." : "Delete User"}
             </Button>
           </DialogFooter>
         </DialogContent>

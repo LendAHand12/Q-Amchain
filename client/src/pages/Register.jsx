@@ -109,8 +109,8 @@ export default function Register() {
         );
         return;
       }
-      if (cleanedUsername.length < 3 || cleanedUsername.length > 20) {
-        toast.error("Username must be between 3 and 20 characters");
+      if (cleanedUsername.length < 6 || cleanedUsername.length > 20) {
+        toast.error("Username must be between 6 and 20 characters");
         return;
       }
 
@@ -180,8 +180,8 @@ export default function Register() {
                 {...register("username", {
                   required: "Username is required",
                   minLength: {
-                    value: 3,
-                    message: "Username must be at least 3 characters",
+                    value: 6,
+                    message: "Username must be at least 6 characters",
                   },
                   maxLength: {
                     value: 20,

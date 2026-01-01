@@ -20,8 +20,8 @@ export const authenticate = async (req, res, next) => {
 
     const user = await User.findById(decoded.userId).select("-password");
 
-    if (!user || !user.isActive) {
-      return res.status(401).json({ success: false, message: "User not found or inactive" });
+    if (!user) {
+      return res.status(401).json({ success: false, message: "User not found" });
     }
 
     req.user = user;

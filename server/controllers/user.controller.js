@@ -68,10 +68,11 @@ export const updateRefCode = async (req, res) => {
       });
     }
 
-    // Check if refCode is already taken by another user
+    // Check if refCode is already taken by another user (exclude deleted users)
     const existingUser = await User.findOne({
       refCode: normalizedRefCode,
       _id: { $ne: req.user._id },
+      isDeleted: { $ne: true },
     });
 
     if (existingUser) {
@@ -108,8 +109,11 @@ export const getDashboard = async (req, res) => {
       "walletBalance totalEarnings directReferrals packagesPurchased refCode username"
     );
 
-    // Count actual direct referrals (F1)
-    const actualDirectReferrals = await User.countDocuments({ parentId: req.user._id });
+    // Count actual direct referrals (F1) - exclude deleted users
+    const actualDirectReferrals = await User.countDocuments({ 
+      parentId: req.user._id,
+      isDeleted: { $ne: true }
+    });
 
     // Get F1 and F2 earnings from commissions
     const f1Commissions = await Commission.aggregate([
@@ -187,14 +191,20 @@ export const getReferralTree = async (req, res) => {
       });
     }
 
-    // Get direct referrals (F1)
-    const directReferrals = await User.find({ parentId: user._id })
+    // Get direct referrals (F1) - exclude deleted users
+    const directReferrals = await User.find({ 
+      parentId: user._id,
+      isDeleted: { $ne: true }
+    })
       .select("username email refCode createdAt totalEarnings")
       .sort({ createdAt: -1 });
 
-    // Get F2 referrals
+    // Get F2 referrals - exclude deleted users
     const f2UserIds = directReferrals.map((ref) => ref._id);
-    const f2Referrals = await User.find({ parentId: { $in: f2UserIds } })
+    const f2Referrals = await User.find({ 
+      parentId: { $in: f2UserIds },
+      isDeleted: { $ne: true }
+    })
       .select("username email refCode createdAt totalEarnings parentId")
       .populate("parentId", "username refCode")
       .sort({ createdAt: -1 });

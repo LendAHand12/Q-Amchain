@@ -12,8 +12,12 @@ router.post(
   [
     body("email").isEmail().trim(),
     body("username")
+      .notEmpty()
+      .withMessage("Username is required")
       .matches(/^[a-z0-9]+$/)
-      .isLength({ min: 3, max: 20 }),
+      .withMessage("Username must be lowercase alphanumeric only (a-z, 0-9)")
+      .isLength({ min: 6, max: 20 })
+      .withMessage("Username must be between 6 and 20 characters"),
     body("password").isLength({ min: 6 }),
     body("referrerCode")
       .notEmpty()
@@ -25,9 +29,24 @@ router.post(
       .withMessage("Wallet address is required")
       .matches(/^0x[a-fA-F0-9]{40}$/)
       .withMessage("Invalid BEP20 wallet address format"),
-    body("fullName").optional().trim().isLength({ max: 100 }),
-    body("phoneNumber").optional().trim().isLength({ max: 20 }),
-    body("identityNumber").optional().trim().isLength({ max: 50 }),
+    body("fullName")
+      .notEmpty()
+      .withMessage("Full name is required")
+      .trim()
+      .isLength({ max: 100 })
+      .withMessage("Full name must be less than 100 characters"),
+    body("phoneNumber")
+      .notEmpty()
+      .withMessage("Phone number is required")
+      .trim()
+      .isLength({ max: 20 })
+      .withMessage("Phone number must be less than 20 characters"),
+    body("identityNumber")
+      .notEmpty()
+      .withMessage("Identity number is required")
+      .trim()
+      .isLength({ max: 50 })
+      .withMessage("Identity number must be less than 50 characters"),
   ],
   handleValidationErrors,
   authController.register

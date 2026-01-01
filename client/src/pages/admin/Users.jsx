@@ -45,25 +45,6 @@ export default function AdminUsers() {
     }
   };
 
-  const handleLock = async (userId) => {
-    try {
-      await api.put(`/admin/users/${userId}/lock`);
-      toast.success("User locked");
-      fetchUsers();
-    } catch (error) {
-      toast.error("Failed to lock user");
-    }
-  };
-
-  const handleUnlock = async (userId) => {
-    try {
-      await api.put(`/admin/users/${userId}/unlock`);
-      toast.success("User unlocked");
-      fetchUsers();
-    } catch (error) {
-      toast.error("Failed to unlock user");
-    }
-  };
 
   const handleViewDetails = (userId) => {
     navigate(`/admin/users/${userId}`);
@@ -101,9 +82,8 @@ export default function AdminUsers() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Username</TableHead>
+                <TableHead>Username (RefCode)</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Ref Code</TableHead>
                 <TableHead>Wallet Address</TableHead>
                 <TableHead>Purchased Package</TableHead>
                 <TableHead>Balance</TableHead>
@@ -114,16 +94,17 @@ export default function AdminUsers() {
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan="8" className="text-center text-muted-foreground">
+                  <TableCell colSpan="7" className="text-center text-muted-foreground">
                     No users found
                   </TableCell>
                 </TableRow>
               ) : (
                 users.map((user) => (
                   <TableRow key={user._id}>
-                    <TableCell className="font-medium">{user.username}</TableCell>
+                    <TableCell className="font-medium">
+                      {user.username} <span className="text-muted-foreground font-mono text-sm">({user.refCode})</span>
+                    </TableCell>
                     <TableCell>{user.email}</TableCell>
-                    <TableCell className="font-mono text-sm">{user.refCode}</TableCell>
                     <TableCell className="font-mono text-xs">
                       {formatAddress(user.walletAddress)}
                     </TableCell>
@@ -143,12 +124,31 @@ export default function AdminUsers() {
                     </TableCell>
                     <TableCell>{user.walletBalance?.toFixed(2) || "0.00"} USDT</TableCell>
                     <TableCell>
-                      <Badge variant={user.isActive ? "default" : "destructive"}>
-                        {user.isActive ? "Active" : "Locked"}
-                      </Badge>
+                      {user.isDeleted ? (
+                        <Badge 
+                          variant="destructive" 
+                          className="w-fit px-3 py-1.5 font-semibold bg-red-500 hover:bg-red-600 text-white border-0 shadow-sm"
+                        >
+                          Deleted
+                        </Badge>
+                      ) : user.isEmailVerified ? (
+                        <Badge 
+                          variant="default" 
+                          className="w-fit px-3 py-1.5 font-semibold bg-green-500 hover:bg-green-600 text-white border-0 shadow-sm"
+                        >
+                          Active
+                        </Badge>
+                      ) : (
+                        <Badge 
+                          variant="outline" 
+                          className="w-fit px-3 py-1.5 font-semibold bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100"
+                        >
+                          Not Verified
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
+                      {!user.isDeleted && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -156,24 +156,7 @@ export default function AdminUsers() {
                         >
                           View Details
                         </Button>
-                        {user.isActive ? (
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleLock(user._id)}
-                          >
-                            Lock
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleUnlock(user._id)}
-                          >
-                            Unlock
-                          </Button>
-                        )}
-                      </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))

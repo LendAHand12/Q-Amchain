@@ -39,6 +39,7 @@ export const getUsers = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const filter = {
+      // Include all users (including deleted ones)
       ...(search && {
         $or: [
           { email: { $regex: search, $options: "i" } },
@@ -152,13 +153,19 @@ export const getUserById = async (req, res) => {
       .populate("transactionId", "transactionHash amount")
       .sort({ createdAt: -1 });
 
-    // Get referral tree (F1 and F2)
-    const directReferrals = await User.find({ parentId: user._id })
+    // Get referral tree (F1 and F2) - exclude deleted users
+    const directReferrals = await User.find({ 
+      parentId: user._id,
+      isDeleted: { $ne: true }
+    })
       .select("username email refCode createdAt totalEarnings walletBalance")
       .sort({ createdAt: -1 });
 
     const f2UserIds = directReferrals.map((ref) => ref._id);
-    const f2Referrals = await User.find({ parentId: { $in: f2UserIds } })
+    const f2Referrals = await User.find({ 
+      parentId: { $in: f2UserIds },
+      isDeleted: { $ne: true }
+    })
       .select("username email refCode createdAt totalEarnings walletBalance parentId")
       .populate("parentId", "username refCode")
       .sort({ createdAt: -1 });
@@ -235,7 +242,7 @@ export const getUserById = async (req, res) => {
   }
 };
 
-export const lockUser = async (req, res) => {
+export const deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
 
@@ -246,63 +253,99 @@ export const lockUser = async (req, res) => {
       });
     }
 
-    user.isActive = false;
-    await user.save();
-
-    // Log admin action
-    await AdminLog.create({
-      adminId: req.admin._id,
-      action: "lock_user",
-      entityType: "user",
-      entityId: user._id,
-      details: { userId: user._id, username: user.username },
-    });
-
-    res.json({
-      success: true,
-      message: "User locked successfully",
-    });
-  } catch (error) {
-    console.error("Lock user error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to lock user",
-    });
-  }
-};
-
-export const unlockUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-
-    if (!user) {
-      return res.status(404).json({
+    if (user.isDeleted) {
+      return res.status(400).json({
         success: false,
-        message: "User not found",
+        message: "User is already deleted",
       });
     }
 
-    user.isActive = true;
+    // Find all children of the user being deleted
+    const children = await User.find({ 
+      parentId: user._id,
+      isDeleted: { $ne: true }
+    });
+
+    // Get the parent of the user being deleted (if exists and not deleted)
+    let grandParent = null;
+    let grandParentId = null;
+    if (user.parentId) {
+      grandParent = await User.findById(user.parentId);
+      if (grandParent && !grandParent.isDeleted) {
+        grandParentId = grandParent._id;
+      }
+    }
+
+    // Update children: move them up to become children of the deleted user's parent
+    if (children.length > 0) {
+      for (const child of children) {
+        // Update parentId: set to grandParentId (or null if deleted user has no parent)
+        child.parentId = grandParentId || null;
+        
+        // Update ancestors: remove deleted user from ancestors array
+        // ancestors format: [parentId, ...parentAncestors]
+        // After deletion: [grandParentId, ...grandParentAncestors] (if grandParent exists)
+        if (grandParentId && grandParent) {
+          child.ancestors = [grandParentId, ...(grandParent.ancestors || [])];
+        } else {
+          // If deleted user has no parent, children become root (no ancestors)
+          child.ancestors = [];
+        }
+        
+        await child.save();
+      }
+
+      // Update directReferrals count of grandparent (if exists)
+      // Before: grandParent has 1 child (the deleted user)
+      // After: grandParent has children.length children (moved up from deleted user)
+      // Net change: children.length - 1
+      if (grandParentId && grandParent) {
+        grandParent.directReferrals = Math.max(0, (grandParent.directReferrals || 0) - 1 + children.length);
+        await grandParent.save();
+      }
+    } else {
+      // No children, just decrease parent's directReferrals count
+      if (grandParentId && grandParent) {
+        grandParent.directReferrals = Math.max(0, (grandParent.directReferrals || 0) - 1);
+        await grandParent.save();
+      }
+    }
+
+    // Soft delete: set isDeleted and deletedAt only
+    // Keep all unique fields unchanged - they will be available for reuse
+    // because duplicate checks exclude deleted users
+    user.isDeleted = true;
+    user.deletedAt = new Date();
+    // Reset directReferrals to 0 since user is deleted
+    user.directReferrals = 0;
     await user.save();
 
     // Log admin action
     await AdminLog.create({
       adminId: req.admin._id,
-      action: "unlock_user",
+      action: "delete_user",
       entityType: "user",
       entityId: user._id,
-      details: { userId: user._id, username: user.username },
+      details: { 
+        userId: user._id, 
+        username: user.username,
+        email: user.email,
+        childrenMovedUp: children.length,
+        newParentId: grandParentId || null,
+        note: `User soft deleted. ${children.length} children moved up to parent (${grandParentId ? 'has parent' : 'no parent'}). Unique fields available for reuse.`
+      },
+      ipAddress: req.ip || req.connection.remoteAddress,
     });
 
     res.json({
       success: true,
-      message: "User unlocked successfully",
+      message: "User deleted successfully",
     });
   } catch (error) {
-    console.error("Unlock user error:", error);
+    console.error("Delete user error:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to unlock user",
+      message: "Failed to delete user",
     });
   }
 };
@@ -387,21 +430,32 @@ export const updateUserInfo = async (req, res) => {
 
     // Update fields if provided
     if (username !== undefined && username !== user.username) {
-      // Check if username is already taken
-      const existingUser = await User.findOne({ username, _id: { $ne: user._id } });
+      // Normalize username to lowercase
+      const normalizedUsername = username.trim().toLowerCase();
+      
+      // Check if username is already taken (exclude deleted users)
+      const existingUser = await User.findOne({ 
+        username: normalizedUsername, 
+        _id: { $ne: user._id },
+        isDeleted: { $ne: true }
+      });
       if (existingUser) {
         return res.status(400).json({
           success: false,
           message: "Username already taken",
         });
       }
-      user.username = username.trim();
-      changes.username = { old: oldValues.username, new: username.trim() };
+      user.username = normalizedUsername;
+      changes.username = { old: oldValues.username, new: normalizedUsername };
     }
 
     if (email !== undefined && email !== user.email) {
-      // Check if email is already taken
-      const existingUser = await User.findOne({ email, _id: { $ne: user._id } });
+      // Check if email is already taken (exclude deleted users)
+      const existingUser = await User.findOne({ 
+        email, 
+        _id: { $ne: user._id },
+        isDeleted: { $ne: true }
+      });
       if (existingUser) {
         return res.status(400).json({
           success: false,
@@ -413,16 +467,45 @@ export const updateUserInfo = async (req, res) => {
     }
 
     if (fullName !== undefined && fullName !== user.fullName) {
+      // fullName can be duplicated, no need to check
       user.fullName = fullName.trim();
       changes.fullName = { old: oldValues.fullName, new: fullName.trim() };
     }
 
     if (phoneNumber !== undefined && phoneNumber !== user.phoneNumber) {
+      // Check if phoneNumber is already taken (exclude deleted users)
+      if (phoneNumber && phoneNumber.trim()) {
+        const existingUser = await User.findOne({
+          phoneNumber: phoneNumber.trim(),
+          _id: { $ne: user._id },
+          isDeleted: { $ne: true },
+        });
+        if (existingUser) {
+          return res.status(400).json({
+            success: false,
+            message: "Phone number already taken",
+          });
+        }
+      }
       user.phoneNumber = phoneNumber.trim();
       changes.phoneNumber = { old: oldValues.phoneNumber, new: phoneNumber.trim() };
     }
 
     if (identityNumber !== undefined && identityNumber !== user.identityNumber) {
+      // Check if identityNumber is already taken (exclude deleted users)
+      if (identityNumber && identityNumber.trim()) {
+        const existingUser = await User.findOne({
+          identityNumber: identityNumber.trim(),
+          _id: { $ne: user._id },
+          isDeleted: { $ne: true },
+        });
+        if (existingUser) {
+          return res.status(400).json({
+            success: false,
+            message: "Identity number already taken",
+          });
+        }
+      }
       user.identityNumber = identityNumber.trim();
       changes.identityNumber = { old: oldValues.identityNumber, new: identityNumber.trim() };
     }
@@ -432,6 +515,18 @@ export const updateUserInfo = async (req, res) => {
         return res.status(400).json({
           success: false,
           message: "Invalid BEP20 wallet address format",
+        });
+      }
+      // Check if walletAddress is already taken (exclude deleted users)
+      const existingUser = await User.findOne({
+        walletAddress: walletAddress.trim(),
+        _id: { $ne: user._id },
+        isDeleted: { $ne: true },
+      });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Wallet address already taken",
         });
       }
       user.walletAddress = walletAddress.trim();
@@ -514,10 +609,62 @@ export const reset2FA = async (req, res) => {
   }
 };
 
+export const verifyUserEmail = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "User email is already verified",
+      });
+    }
+
+    const oldStatus = user.isEmailVerified;
+    user.isEmailVerified = true;
+    user.emailVerificationToken = null; // Clear verification token if exists
+    await user.save();
+
+    // Log admin action
+    await AdminLog.create({
+      adminId: req.admin._id,
+      action: "verify_user_email",
+      entityType: "user",
+      entityId: user._id,
+      details: {
+        userId: user._id,
+        username: user.username,
+        email: user.email,
+        oldStatus,
+        newStatus: true,
+      },
+      ipAddress: req.ip || req.connection.remoteAddress,
+    });
+
+    res.json({
+      success: true,
+      message: "User email verified successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error("Verify user email error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to verify user email",
+    });
+  }
+};
+
 export const getStats = async (req, res) => {
   try {
-    const totalUsers = await User.countDocuments();
-    const activeUsers = await User.countDocuments({ isActive: true });
+    const totalUsers = await User.countDocuments({ isDeleted: { $ne: true } });
     const totalTransactions = await Transaction.countDocuments({
       type: "payment",
       status: "completed",
@@ -537,7 +684,6 @@ export const getStats = async (req, res) => {
       data: {
         users: {
           total: totalUsers,
-          active: activeUsers,
         },
         transactions: {
           total: totalTransactions,

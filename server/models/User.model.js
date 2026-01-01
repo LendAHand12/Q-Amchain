@@ -6,14 +6,12 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true,
       lowercase: true,
       trim: true,
     },
     username: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
       lowercase: true,
       match: [/^[a-z0-9]+$/, "Username must be lowercase alphanumeric, no spaces"],
@@ -25,7 +23,6 @@ const userSchema = new mongoose.Schema(
     },
     refCode: {
       type: String,
-      unique: true,
       required: true,
       lowercase: true,
       trim: true,
@@ -67,10 +64,6 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
     walletBalance: {
       type: Number,
       default: 0,
@@ -105,18 +98,26 @@ const userSchema = new mongoose.Schema(
     },
     fullName: {
       type: String,
+      required: true,
       trim: true,
-      default: "",
     },
     phoneNumber: {
       type: String,
+      required: true,
       trim: true,
-      default: "",
     },
     identityNumber: {
       type: String,
+      required: true,
       trim: true,
-      default: "",
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
     },
   },
   {
@@ -126,6 +127,7 @@ const userSchema = new mongoose.Schema(
 
 // Indexes
 userSchema.index({ parentId: 1 });
+userSchema.index({ isDeleted: 1 });
 
 // Hash password before saving
 userSchema.pre("save", async function (next) {
@@ -166,8 +168,11 @@ userSchema.pre("save", async function (next) {
       // Remove any non-alphanumeric characters (just in case)
       generatedCode = generatedCode.replace(/[^a-z0-9]/g, '');
       
-      // Check uniqueness
-      const existing = await this.constructor.findOne({ refCode: generatedCode });
+      // Check uniqueness (exclude deleted users)
+      const existing = await this.constructor.findOne({ 
+        refCode: generatedCode,
+        isDeleted: { $ne: true }
+      });
       if (!existing) {
         isUnique = true;
       }
