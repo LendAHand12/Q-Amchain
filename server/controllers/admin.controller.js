@@ -666,11 +666,28 @@ export const assignPackage = async (req, res) => {
       });
     }
 
-    // Only update user - no transaction, no commission
+    // Update user
     user.assignedPackageId = packageData._id;
     user.isPackageAssigned = true;
     user.packagesPurchased = (user.packagesPurchased || 0) + 1;
     await user.save();
+
+    // Create transaction record with empty hash (no commission will be created)
+    await Transaction.create({
+      userId: user._id,
+      packageId: packageData._id,
+      type: "payment",
+      amount: packageData.price,
+      currency: "USDT",
+      status: "completed",
+      transactionHash: "", // Empty hash for assigned packages
+      fromAddress: null,
+      toAddress: null,
+      description: `Package assigned by admin: ${packageData.name}`,
+    });
+
+    // Note: We do NOT call calculateCommissions() here
+    // Assigned packages should not generate commissions
 
     // Log admin action
     await AdminLog.create({
@@ -684,7 +701,7 @@ export const assignPackage = async (req, res) => {
         packageId: packageData._id,
         packageName: packageData.name,
         packagePrice: packageData.price,
-        note: "Package assigned by admin (no payment, no commission)",
+        note: "Package assigned by admin (transaction created with empty hash, no commission)",
       },
       ipAddress: req.ip || req.connection.remoteAddress,
     });
