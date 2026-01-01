@@ -36,6 +36,10 @@ export default function UserDetails() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [newParentRefCode, setNewParentRefCode] = useState("");
+  const [moveWithChildren, setMoveWithChildren] = useState(true);
+  const [isTransferring, setIsTransferring] = useState(false);
 
   const {
     register,
@@ -167,6 +171,30 @@ export default function UserDetails() {
     }
   };
 
+  const handleTransferUser = async () => {
+    if (!newParentRefCode || !newParentRefCode.trim()) {
+      toast.error("Please enter new parent's refCode or username");
+      return;
+    }
+
+    setIsTransferring(true);
+    try {
+      await api.put(`/admin/users/${id}/transfer`, {
+        newParentRefCode: newParentRefCode.trim(),
+        moveWithChildren: moveWithChildren,
+      });
+      toast.success("User transferred successfully");
+      setShowTransferDialog(false);
+      setNewParentRefCode("");
+      setMoveWithChildren(true);
+      fetchUserDetails(id);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to transfer user");
+    } finally {
+      setIsTransferring(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center py-8">
@@ -216,10 +244,20 @@ export default function UserDetails() {
                 <CardTitle>Basic Information</CardTitle>
                 <div className="flex gap-2">
                   {!isEditing ? (
-                    <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit User Info
-                    </Button>
+                    <>
+                      <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit User Info
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setShowTransferDialog(true)}
+                        className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                      >
+                        Transfer User
+                      </Button>
+                    </>
                   ) : (
                     <>
                       <Button variant="outline" size="sm" onClick={handleCancelEdit}>
@@ -848,6 +886,126 @@ export default function UserDetails() {
               className="bg-red-600 hover:bg-red-700"
             >
               {isDeleting ? "Deleting..." : "Delete User"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transfer User Dialog */}
+      <Dialog open={showTransferDialog} onOpenChange={setShowTransferDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Transfer User</DialogTitle>
+            <DialogDescription>
+              Transfer user <strong>{userDetails?.user?.username}</strong> to a new parent in the referral tree.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Current Parent Info */}
+            {userDetails?.user?.parentId ? (
+              <div className="p-3 bg-muted rounded-md">
+                <Label className="text-sm font-semibold">Current Parent:</Label>
+                <p className="text-sm mt-1">
+                  {userDetails.user.parentId.username} ({userDetails.user.parentId.refCode})
+                </p>
+              </div>
+            ) : (
+              <div className="p-3 bg-muted rounded-md">
+                <Label className="text-sm font-semibold">Current Parent:</Label>
+                <p className="text-sm mt-1 text-muted-foreground">No parent (root user)</p>
+              </div>
+            )}
+
+            {/* Children Count */}
+            {userDetails?.referrals?.f1 && userDetails.referrals.f1.length > 0 && (
+              <div className="p-3 bg-blue-50 rounded-md border border-blue-200">
+                <Label className="text-sm font-semibold text-blue-900">Direct Children:</Label>
+                <p className="text-sm mt-1 text-blue-700">
+                  This user has <strong>{userDetails.referrals.f1.length}</strong> direct child(ren)
+                </p>
+              </div>
+            )}
+
+            {/* New Parent Input */}
+            <div className="space-y-2">
+              <Label htmlFor="newParentRefCode">New Parent RefCode or Username *</Label>
+              <Input
+                id="newParentRefCode"
+                value={newParentRefCode}
+                onChange={(e) => setNewParentRefCode(e.target.value)}
+                placeholder="Enter refCode or username"
+                disabled={isTransferring}
+              />
+              <p className="text-xs text-muted-foreground">
+                Enter the refCode or username of the new parent user
+              </p>
+            </div>
+
+            {/* Transfer Option */}
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold">Transfer Option:</Label>
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 p-3 border rounded-md cursor-pointer hover:bg-muted">
+                  <input
+                    type="radio"
+                    name="transferOption"
+                    checked={moveWithChildren}
+                    onChange={() => setMoveWithChildren(true)}
+                    disabled={isTransferring}
+                    className="w-4 h-4"
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">Move with children</div>
+                    <div className="text-xs text-muted-foreground">
+                      Transfer this user and all their direct children to the new parent
+                    </div>
+                  </div>
+                </label>
+                <label className="flex items-center space-x-2 p-3 border rounded-md cursor-pointer hover:bg-muted">
+                  <input
+                    type="radio"
+                    name="transferOption"
+                    checked={!moveWithChildren}
+                    onChange={() => setMoveWithChildren(false)}
+                    disabled={isTransferring}
+                    className="w-4 h-4"
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">Move without children</div>
+                    <div className="text-xs text-muted-foreground">
+                      Transfer only this user. Their children will stay with the current parent (or become root if no parent)
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Warning Message */}
+            <div className="p-3 bg-amber-50 rounded-md border border-amber-200">
+              <p className="text-xs text-amber-800">
+                <strong>Warning:</strong> This action will change the referral tree structure. 
+                Future commissions will use the new parent structure. Existing commissions are not affected.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowTransferDialog(false);
+                setNewParentRefCode("");
+                setMoveWithChildren(true);
+              }}
+              disabled={isTransferring}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleTransferUser}
+              disabled={!newParentRefCode.trim() || isTransferring}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isTransferring ? "Transferring..." : "Transfer User"}
             </Button>
           </DialogFooter>
         </DialogContent>

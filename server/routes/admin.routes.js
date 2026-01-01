@@ -17,6 +17,7 @@ router.get("/users/:id", checkPermission("users.view"), adminController.getUserB
 router.delete("/users/:id", checkPermission("users.delete"), adminController.deleteUser);
 router.put("/users/:id/reset-2fa", checkPermission("users.reset_2fa"), adminController.reset2FA);
 router.put("/users/:id/verify-email", checkPermission("users.update"), adminController.verifyUserEmail);
+router.put("/users/:id/transfer", checkPermission("users.update"), adminController.transferUser);
 router.put("/users/:id/wallet", checkPermission("users.update_wallet"), adminController.updateUserWallet);
 router.put("/users/:id/assign-package", checkPermission("users.update"), adminController.assignPackage);
 router.put("/users/:id", checkPermission("users.update"), adminController.updateUserInfo);

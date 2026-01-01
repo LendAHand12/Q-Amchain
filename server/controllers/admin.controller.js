@@ -6,6 +6,7 @@ import Package from "../models/Package.model.js";
 import AdminLog from "../models/AdminLog.model.js";
 import Admin from "../models/Admin.model.js";
 import { calculateCommissions } from "../utils/commission.service.js";
+import mongoose from "mongoose";
 
 export const getAdminProfile = async (req, res) => {
   try {
@@ -658,6 +659,213 @@ export const verifyUserEmail = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to verify user email",
+    });
+  }
+};
+
+export const transferUser = async (req, res) => {
+  try {
+    const { newParentRefCode, moveWithChildren } = req.body;
+    const userId = req.params.id;
+
+    // Validation
+    if (!newParentRefCode || !newParentRefCode.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "New parent refCode is required",
+      });
+    }
+
+    // Get User A (user to transfer)
+    const userA = await User.findById(userId);
+    if (!userA) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (userA.isDeleted) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot transfer deleted user",
+      });
+    }
+
+    // Get User C (new parent)
+    const userC = await User.findOne({
+      $or: [
+        { refCode: newParentRefCode.trim().toLowerCase() },
+        { username: newParentRefCode.trim().toLowerCase() },
+      ],
+      isDeleted: { $ne: true },
+    });
+
+    if (!userC) {
+      return res.status(404).json({
+        success: false,
+        message: "New parent not found",
+      });
+    }
+
+    // Check if User C is the same as User A
+    if (userC._id.toString() === userA._id.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot transfer user to themselves",
+      });
+    }
+
+    // Check if User A already has User C as parent
+    if (userA.parentId && userA.parentId.toString() === userC._id.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "User already has this parent",
+      });
+    }
+
+    // Check circular reference: User C cannot be a descendant of User A
+    const userAAncestors = userA.ancestors || [];
+    if (userAAncestors.some((ancestorId) => ancestorId.toString() === userC._id.toString())) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot transfer user to their descendant (circular reference)",
+      });
+    }
+
+    // Get User B (current parent, if exists)
+    let userB = null;
+    if (userA.parentId) {
+      userB = await User.findById(userA.parentId);
+    }
+
+    // Get all direct children of User A
+    const childrenOfA = await User.find({
+      parentId: userA._id,
+      isDeleted: { $ne: true },
+    });
+
+    const moveWithChildrenFlag = moveWithChildren === true || moveWithChildren === "true";
+
+    // Calculate new ancestors for User A
+    const newAncestorsForA = [userC._id, ...(userC.ancestors || [])];
+
+    if (moveWithChildrenFlag) {
+      // Option 1: Move with children
+      // Update User A
+      userA.parentId = userC._id;
+      userA.ancestors = newAncestorsForA;
+      await userA.save();
+
+      // Update all children of User A (their parentId stays the same, but ancestors change)
+      if (childrenOfA.length > 0) {
+        const childrenUpdates = childrenOfA.map((child) => ({
+          updateOne: {
+            filter: { _id: child._id },
+            update: {
+              $set: {
+                ancestors: [userA._id, ...newAncestorsForA],
+              },
+            },
+          },
+        }));
+        await User.bulkWrite(childrenUpdates);
+      }
+
+      // Update directReferrals counts
+      // User B: decrease by (1 + number of A's children)
+      if (userB) {
+        userB.directReferrals = Math.max(0, (userB.directReferrals || 0) - 1 - childrenOfA.length);
+        await userB.save();
+      }
+
+      // User C: increase by (1 + number of A's children)
+      userC.directReferrals = (userC.directReferrals || 0) + 1 + childrenOfA.length;
+      await userC.save();
+    } else {
+      // Option 2: Move without children
+      // Update User A
+      userA.parentId = userC._id;
+      userA.ancestors = newAncestorsForA;
+      await userA.save();
+
+      // Update all children of User A: they become children of User B
+      if (childrenOfA.length > 0) {
+        const newAncestorsForChildren = userB
+          ? [userB._id, ...(userB.ancestors || [])]
+          : [];
+
+        const childrenUpdates = childrenOfA.map((child) => ({
+          updateOne: {
+            filter: { _id: child._id },
+            update: {
+              $set: {
+                parentId: userB ? userB._id : null,
+                ancestors: newAncestorsForChildren,
+              },
+            },
+          },
+        }));
+        await User.bulkWrite(childrenUpdates);
+      }
+
+      // Update directReferrals counts
+      // User B: decrease by 1 (loses User A), increase by number of A's children
+      if (userB) {
+        userB.directReferrals = Math.max(0, (userB.directReferrals || 0) - 1 + childrenOfA.length);
+        await userB.save();
+      } else if (childrenOfA.length > 0) {
+        // If User B doesn't exist, children become root users (no parent)
+        // No need to update any parent's directReferrals
+      }
+
+      // User C: increase by 1 (gains User A)
+      userC.directReferrals = (userC.directReferrals || 0) + 1;
+      await userC.save();
+    }
+
+    // Log admin action
+    await AdminLog.create({
+      adminId: req.admin._id,
+      action: "transfer_user",
+      entityType: "user",
+      entityId: userA._id,
+      details: {
+        userId: userA._id,
+        username: userA.username,
+        email: userA.email,
+        oldParentId: userB ? userB._id : null,
+        oldParentUsername: userB ? userB.username : null,
+        newParentId: userC._id,
+        newParentUsername: userC.username,
+        moveWithChildren: moveWithChildrenFlag,
+        childrenCount: childrenOfA.length,
+        childrenMoved: moveWithChildrenFlag ? childrenOfA.length : 0,
+        childrenLeftBehind: moveWithChildrenFlag ? 0 : childrenOfA.length,
+      },
+      ipAddress: req.ip || req.connection.remoteAddress,
+    });
+
+    res.json({
+      success: true,
+      message: `User transferred successfully. ${moveWithChildrenFlag ? "Moved with children." : "Moved without children."}`,
+      data: {
+        user: {
+          _id: userA._id,
+          username: userA.username,
+          newParentId: userC._id,
+          newParentUsername: userC.username,
+        },
+        childrenAffected: childrenOfA.length,
+        moveWithChildren: moveWithChildrenFlag,
+      },
+    });
+  } catch (error) {
+    console.error("Transfer user error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to transfer user",
+      error: error.message,
     });
   }
 };
