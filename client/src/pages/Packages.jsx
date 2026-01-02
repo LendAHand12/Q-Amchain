@@ -57,13 +57,13 @@ export default function Packages() {
                 <CardDescription className="text-base">{pkg.description}</CardDescription>
               )}
 
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <p className="text-sm font-medium">Commission Rates:</p>
                 <div className="flex gap-2">
                   <Badge variant="secondary">F1: {pkg.commissionLv1}%</Badge>
                   <Badge variant="secondary">F2: {pkg.commissionLv2}%</Badge>
                 </div>
-              </div>
+              </div> */}
 
               {pkg.features && pkg.features.length > 0 && (
                 <ul className="space-y-2">
