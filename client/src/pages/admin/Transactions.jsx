@@ -21,6 +21,7 @@ import {
 import { formatDate } from "../../utils/dateFormat";
 import { formatAddress } from "../../utils/formatAddress";
 import Pagination from "../../components/Pagination";
+import Loading from "@/components/Loading";
 
 export default function AdminTransactions() {
   const [transactions, setTransactions] = useState([]);
@@ -54,11 +55,7 @@ export default function AdminTransactions() {
   };
 
   if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <Loading fullScreen text="Loading transactions..." />;
   }
 
   return (

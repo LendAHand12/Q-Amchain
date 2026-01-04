@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../utils/api";
 import toast from "react-hot-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Loading from '../../components/Loading'
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -23,11 +24,7 @@ export default function AdminDashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <Loading fullScreen text="Loading admin analytics..." />;
   }
 
   return (

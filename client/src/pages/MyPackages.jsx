@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import PaymentModal from "../components/PaymentModal";
 import { formatDate } from "../utils/dateFormat";
 import { formatAddress } from "../utils/formatAddress";
+import Loading from "../components/Loading";
 
 export default function MyPackages() {
   const [myPackage, setMyPackage] = useState(null); // User chỉ có 1 package
@@ -80,11 +81,7 @@ export default function MyPackages() {
   };
 
   if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <Loading fullScreen />;
   }
 
   // If user has purchased a package, only display that package
@@ -115,7 +112,7 @@ export default function MyPackages() {
                     rel="noopener noreferrer"
                     className="flex-1 sm:flex-initial"
                   >
-                    <Button variant="outline" className="w-full sm:w-auto border-gray-600 text-white hover:bg-gray-700">
+                    <Button variant="outline" className="w-full sm:w-auto border-gray-600 text-black hover:bg-gray-700">
                       View Full Size
                     </Button>
                   </a>

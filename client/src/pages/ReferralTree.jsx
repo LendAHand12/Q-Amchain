@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../utils/api'
 import toast from 'react-hot-toast'
+import Loading from '../components/Loading'
 
 export default function ReferralTree() {
   const [f1Referrals, setF1Referrals] = useState([])
@@ -60,11 +61,7 @@ export default function ReferralTree() {
   }
 
   if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-lg">Loading referral tree...</div>
-      </div>
-    );
+    return <Loading fullScreen text="Building referral tree..." />;
   }
 
   const totalReferrals = f1Referrals.length + f2Referrals.length

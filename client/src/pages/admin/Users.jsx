@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../utils/api";
 import toast from "react-hot-toast";
+import Loading from '../../components/Loading';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,11 +52,7 @@ export default function AdminUsers() {
   };
 
   if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <Loading fullScreen text="Fetching users..." />;
   }
 
   return (

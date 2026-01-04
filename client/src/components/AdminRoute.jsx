@@ -1,6 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useEffect, useState } from "react";
+import Loading from "./Loading";
 
 export default function AdminRoute({ children }) {
   const { admin, isAdminAuthenticated, checkAdminAuth } = useAuthStore();
@@ -15,11 +16,7 @@ export default function AdminRoute({ children }) {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <Loading fullScreen text="Checking admin privileges..." />;
   }
 
   if (!isAdminAuthenticated || !admin) {

@@ -10,6 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "../utils/dateFormat";
 import { formatAddress } from "../utils/formatAddress";
+import Pagination from "../components/Pagination";
+import Loading from "../components/Loading";
 
 export default function Withdraw() {
   const { user, checkAuth } = useAuthStore()
@@ -78,11 +80,7 @@ export default function Withdraw() {
   }
 
   if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <Loading fullScreen />;
   }
 
   return (
@@ -193,7 +191,7 @@ export default function Withdraw() {
           </CardHeader>
           <CardContent>
             {historyLoading ? (
-              <p className="text-center text-gray-400 py-4">Loading...</p>
+              <Loading className="py-8" text="Fetching history..." />
             ) : balanceHistory.length === 0 ? (
               <p className="text-center text-gray-400 py-8">
                 No balance history yet

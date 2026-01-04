@@ -15,6 +15,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import Pagination from "../components/Pagination";
+import Loading from "../components/Loading";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -115,11 +117,7 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <Loading fullScreen />;
   }
 
   return (

@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "../utils/dateFormat";
 import Pagination from "../components/Pagination";
+import Loading from "../components/Loading";
 
 export default function Commissions() {
   const [commissions, setCommissions] = useState([])
@@ -41,11 +42,7 @@ export default function Commissions() {
   }
 
   if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <Loading fullScreen />;
   }
 
   return (

@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import api from '../utils/api'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '../store/authStore'
+import Loading from '../components/Loading'
 
 export default function Profile() {
   const { user, checkAuth } = useAuthStore()
@@ -84,11 +85,7 @@ export default function Profile() {
   }
 
   if (!profile) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <Loading fullScreen />;
   }
 
   return (

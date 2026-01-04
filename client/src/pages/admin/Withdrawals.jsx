@@ -13,6 +13,7 @@ import { formatDate } from "../../utils/dateFormat";
 import { formatAddress } from "../../utils/formatAddress";
 import Pagination from "../../components/Pagination";
 import WithdrawalPaymentModal from "../../components/WithdrawalPaymentModal";
+import Loading from '../../components/Loading';
 
 export default function AdminWithdrawals() {
   const [withdrawals, setWithdrawals] = useState([]);
@@ -100,11 +101,7 @@ export default function AdminWithdrawals() {
   };
 
   if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <Loading fullScreen text="Fetching withdrawal requests..." />;
   }
 
   return (

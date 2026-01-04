@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
 import toast from "react-hot-toast";
+import Loading from '../../components/Loading';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDateTime } from "../../utils/dateFormat";
@@ -29,11 +30,7 @@ export default function AdminLogs() {
   };
 
   if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <Loading fullScreen text="Loading audit logs..." />;
   }
 
   return (
