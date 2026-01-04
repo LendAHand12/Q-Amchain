@@ -562,7 +562,7 @@ export default function UserDetails() {
                       <div className="flex items-start gap-4">
                         <div className="relative group">
                           <img
-                            src={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${userDetails.user.certificateUrl}`}
+                            src={`${import.meta.env.VITE_API_URL}${userDetails.user.certificateUrl}`}
                             alt="Certificate"
                             className="w-32 h-32 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition"
                             onClick={() => setShowCertificateModal(true)}
@@ -1138,7 +1138,7 @@ export default function UserDetails() {
           <div className="flex items-center justify-center p-4">
             {userDetails?.user?.certificateUrl && (
               <img
-                src={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${userDetails.user.certificateUrl}`}
+                src={`${import.meta.env.VITE_API_URL}${userDetails.user.certificateUrl}`}
                 alt="Certificate"
                 className="max-w-full max-h-[70vh] object-contain rounded-lg"
               />
@@ -1149,7 +1149,7 @@ export default function UserDetails() {
               Close
             </Button>
             <a
-              href={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${userDetails?.user?.certificateUrl}`}
+              href={`${import.meta.env.VITE_API_URL}${userDetails?.user?.certificateUrl}`}
               download
               target="_blank"
               rel="noopener noreferrer"

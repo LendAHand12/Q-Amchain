@@ -108,14 +108,14 @@ export default function MyPackages() {
             <CardContent className="space-y-4">
               <div className="flex flex-col items-center gap-4">
                 <img
-                  src={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${myPackage.certificateUrl}`}
+                  src={`${import.meta.env.VITE_API_URL}${myPackage.certificateUrl}`}
                   alt="Certificate"
                   className="w-full max-w-md rounded-lg border shadow-lg cursor-pointer hover:opacity-90 transition"
-                  onClick={() => window.open(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${myPackage.certificateUrl}`, '_blank')}
+                  onClick={() => window.open(`${import.meta.env.VITE_API_URL}${myPackage.certificateUrl}`, '_blank')}
                 />
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <a
-                    href={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${myPackage.certificateUrl}`}
+                    href={`${import.meta.env.VITE_API_URL}${myPackage.certificateUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 sm:flex-initial"
@@ -125,7 +125,7 @@ export default function MyPackages() {
                     </Button>
                   </a>
                   <a
-                    href={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${myPackage.certificateUrl}`}
+                    href={`${import.meta.env.VITE_API_URL}${myPackage.certificateUrl}`}
                     download
                     className="flex-1 sm:flex-initial"
                   >
