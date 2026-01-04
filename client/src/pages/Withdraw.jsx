@@ -86,20 +86,16 @@ export default function Withdraw() {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Withdraw Funds</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">Request withdrawal to your USDT wallet</p>
-      </div>
+    <div className="space-y-6">
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         {/* Withdrawal Form */}
-        <Card className="lg:col-span-1">
+        <Card className="lg:col-span-1 bg-[#252525] border-gray-700">
           <CardHeader>
-            <CardTitle>Request Withdrawal</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-white">Request Withdrawal</CardTitle>
+            <CardDescription className="text-gray-400">
               Available Balance:{" "}
-              <span className="font-bold text-primary">
+              <span className="font-bold text-brand-red">
                 {user?.walletBalance?.toFixed(2) || "0.00"} USDT
               </span>
             </CardDescription>
@@ -131,18 +127,18 @@ export default function Withdraw() {
               </div>
 
               <div className="space-y-2">
-                <Label>Withdrawal Wallet Address</Label>
-                <div className="p-3 bg-muted rounded-md">
-                  <p className="text-sm font-mono break-all">
+                <Label className="text-gray-300">Withdrawal Wallet Address</Label>
+                <div className="p-3 bg-gray-800 rounded-md border border-gray-700">
+                  <p className="text-sm font-mono break-all text-gray-300">
                     {user?.walletAddress || "No wallet address set"}
                   </p>
                   {!user?.walletAddress && (
-                    <p className="text-xs text-destructive mt-1">
+                    <p className="text-xs text-red-400 mt-1">
                       Please contact admin to set your wallet address
                     </p>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-400">
                   Funds will be sent to this wallet address. Contact admin to change it.
                 </p>
               </div>
@@ -181,7 +177,7 @@ export default function Withdraw() {
               <Button 
                 type="submit" 
                 disabled={isSubmittingForm || isSubmitting} 
-                className="w-full"
+                className="w-full bg-brand-red hover:bg-brand-red-hover"
               >
                 {isSubmittingForm || isSubmitting ? "Submitting..." : "Submit Withdrawal Request"}
               </Button>
@@ -190,16 +186,16 @@ export default function Withdraw() {
         </Card>
 
         {/* Balance History */}
-        <Card className="lg:col-span-1">
+        <Card className="lg:col-span-1 bg-[#252525] border-gray-700">
           <CardHeader>
-            <CardTitle>Balance History</CardTitle>
-            <CardDescription>Recent balance changes</CardDescription>
+            <CardTitle className="text-white">Balance History</CardTitle>
+            <CardDescription className="text-gray-400">Recent balance changes</CardDescription>
           </CardHeader>
           <CardContent>
             {historyLoading ? (
-              <p className="text-center text-muted-foreground py-4">Loading...</p>
+              <p className="text-center text-gray-400 py-4">Loading...</p>
             ) : balanceHistory.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
+              <p className="text-center text-gray-400 py-8">
                 No balance history yet
               </p>
             ) : (
@@ -207,14 +203,14 @@ export default function Withdraw() {
                 {balanceHistory.map((history) => (
                   <div
                     key={history._id}
-                    className="flex justify-between items-start p-3 border rounded-lg"
+                    className="flex justify-between items-start p-3 border border-gray-700 rounded-lg bg-gray-800"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium break-words">{history.description}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-sm font-medium break-words text-white">{history.description}</p>
+                      <p className="text-xs text-gray-400 mt-1">
                         {formatDate(history.createdAt)}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-gray-400 mt-1">
                         Before: {history.balanceBefore.toFixed(2)} → After: {history.balanceAfter.toFixed(2)} USDT
                       </p>
                     </div>
@@ -236,29 +232,29 @@ export default function Withdraw() {
         </Card>
 
         {/* Withdrawal History */}
-        <Card className="lg:col-span-1">
+        <Card className="lg:col-span-1 bg-[#252525] border-gray-700">
           <CardHeader>
-            <CardTitle>Withdrawal History</CardTitle>
+            <CardTitle className="text-white">Withdrawal History</CardTitle>
           </CardHeader>
           <CardContent>
             {withdrawals.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
+              <p className="text-center text-gray-400 py-8">
                 No withdrawal requests yet
               </p>
             ) : (
               <div className="space-y-4">
                 {withdrawals.map((withdrawal) => (
-                  <Card key={withdrawal._id}>
+                  <Card key={withdrawal._id} className="bg-gray-800 border-gray-700">
                     <CardContent className="pt-6">
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex-1">
-                          <p className="font-semibold">
+                          <p className="font-semibold text-white">
                             {withdrawal.amount} {withdrawal.currency}
                           </p>
-                          <p className="text-sm text-muted-foreground font-mono">
+                          <p className="text-sm text-gray-400 font-mono">
                             {formatAddress(withdrawal.walletAddress)}
                           </p>
-                          <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                          <div className="text-xs text-gray-400 mt-1 space-y-0.5">
                             <div>
                               <span>Created: </span>
                               <span>{formatDate(withdrawal.createdAt)}</span>
@@ -298,12 +294,12 @@ export default function Withdraw() {
                         </Badge>
                       </div>
                       {withdrawal.transactionHash && (
-                        <div className="mt-2 pt-2 border-t">
+                        <div className="mt-2 pt-2 border-t border-gray-700">
                           <a
                             href={`https://bscscan.com/tx/${withdrawal.transactionHash}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-primary font-mono hover:underline flex items-center gap-1"
+                            className="text-xs text-brand-red font-mono hover:underline flex items-center gap-1"
                             title={withdrawal.transactionHash}
                           >
                             <span>TX:</span>

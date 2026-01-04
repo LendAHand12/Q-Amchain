@@ -35,12 +35,12 @@ export default function ReferralTree() {
     
     return (
       <div key={node._id || node.id} className="ml-2 sm:ml-8 mt-4">
-        <div className={`bg-white p-3 sm:p-4 rounded-lg shadow-md border-l-4 ${
+        <div className={`bg-[#252525] border-2 p-3 sm:p-4 rounded-lg ${
           level === 0 ? 'border-blue-500' : level === 1 ? 'border-purple-500' : 'border-orange-500'
         }`}>
-          <div className="font-semibold text-sm sm:text-base">{node.username}</div>
-          <div className="text-xs sm:text-sm text-gray-600">Ref: {node.refCode}</div>
-          <div className="text-xs sm:text-sm text-gray-500 mt-1">
+          <div className="font-semibold text-sm sm:text-base text-white">{node.username}</div>
+          <div className="text-xs sm:text-sm text-gray-400">Ref: {node.refCode}</div>
+          <div className="text-xs sm:text-sm text-gray-400 mt-1">
             <div className="flex flex-wrap gap-2">
               <span>Referrals: {node.directReferrals || 0}</span>
               <span className="hidden sm:inline">|</span>
@@ -70,31 +70,28 @@ export default function ReferralTree() {
   const totalReferrals = f1Referrals.length + f2Referrals.length
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2 sm:mb-4">Referral Tree</h1>
-      </div>
+    <div className="space-y-6">
       <div className="mb-6 flex flex-wrap gap-3 sm:gap-4 text-sm">
-        <div className="bg-blue-50 px-4 py-2 rounded-lg">
-          <span className="font-semibold">F1 (Direct):</span> {f1Referrals.length}
+        <div className="bg-blue-900/30 border border-blue-700 px-4 py-2 rounded-lg">
+          <span className="font-semibold text-blue-400">F1 (Direct):</span> <span className="text-white">{f1Referrals.length}</span>
         </div>
-        <div className="bg-purple-50 px-4 py-2 rounded-lg">
-          <span className="font-semibold">F2 (Indirect):</span> {f2Referrals.length}
+        <div className="bg-purple-900/30 border border-purple-700 px-4 py-2 rounded-lg">
+          <span className="font-semibold text-purple-400">F2 (Indirect):</span> <span className="text-white">{f2Referrals.length}</span>
         </div>
-        <div className="bg-gray-50 px-4 py-2 rounded-lg">
-          <span className="font-semibold">Total:</span> {totalReferrals}
+        <div className="bg-gray-800 border border-gray-700 px-4 py-2 rounded-lg">
+          <span className="font-semibold text-gray-300">Total:</span> <span className="text-white">{totalReferrals}</span>
         </div>
       </div>
       
       {f1Referrals.length === 0 ? (
-        <div className="bg-white p-8 rounded-lg shadow-md text-center">
-          <p className="text-gray-600 mb-4">You don't have any referrals yet.</p>
+        <div className="bg-[#252525] border border-gray-700 p-8 rounded-lg text-center">
+          <p className="text-gray-400 mb-4">You don't have any referrals yet.</p>
           <p className="text-sm text-gray-500">
             Share your referral link to start building your network!
           </p>
         </div>
       ) : (
-        <div className="bg-gray-50 p-6 rounded-lg">
+        <div className="bg-[#1A1A1A] border border-gray-700 p-6 rounded-lg">
           {f1Referrals.map((node) => renderNode(node, 0))}
         </div>
       )}

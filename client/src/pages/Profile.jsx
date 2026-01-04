@@ -92,43 +92,39 @@ export default function Profile() {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-8">Profile & Security</h1>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Profile Info */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
+        <div className="bg-[#252525] border border-gray-700 p-6 rounded-lg">
+          <h2 className="text-xl font-semibold mb-4 text-white">Profile Information</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <p className="text-gray-900">{profile.email}</p>
+              <label className="block text-sm font-medium text-gray-400">Email</label>
+              <p className="text-white">{profile.email}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Username</label>
-              <p className="text-gray-900">{profile.username}</p>
+              <label className="block text-sm font-medium text-gray-400">Username</label>
+              <p className="text-white">{profile.username}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Full Name</label>
-              <p className="text-gray-900">{profile.fullName || "Not provided"}</p>
+              <label className="block text-sm font-medium text-gray-400">Full Name</label>
+              <p className="text-white">{profile.fullName || "Not provided"}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-              <p className="text-gray-900">{profile.phoneNumber || "Not provided"}</p>
+              <label className="block text-sm font-medium text-gray-400">Phone Number</label>
+              <p className="text-white">{profile.phoneNumber || "Not provided"}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Identity Number</label>
-              <p className="text-gray-900 font-mono">{profile.identityNumber || "Not provided"}</p>
+              <label className="block text-sm font-medium text-gray-400">Identity Number</label>
+              <p className="text-white font-mono">{profile.identityNumber || "Not provided"}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Referral Code</label>
-              <p className="text-gray-900 font-mono">{profile.refCode}</p>
+              <label className="block text-sm font-medium text-gray-400">Referral Code</label>
+              <p className="text-white font-mono">{profile.refCode}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Email Verified</label>
-              <p className={profile.isEmailVerified ? 'text-green-600' : 'text-red-600'}>
+              <label className="block text-sm font-medium text-gray-400">Email Verified</label>
+              <p className={profile.isEmailVerified ? 'text-accent-green' : 'text-red-400'}>
                 {profile.isEmailVerified ? 'Yes' : 'No'}
               </p>
             </div>
@@ -136,15 +132,15 @@ export default function Profile() {
         </div>
 
         {/* Security Settings */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Security Settings</h2>
+        <div className="bg-[#252525] border border-gray-700 p-6 rounded-lg">
+          <h2 className="text-xl font-semibold mb-4 text-white">Security Settings</h2>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-400 mb-2">
                 2FA Status
               </label>
-              <p className={profile.isTwoFactorEnabled ? 'text-green-600' : 'text-gray-600'}>
+              <p className={profile.isTwoFactorEnabled ? 'text-accent-green' : 'text-gray-400'}>
                 {profile.isTwoFactorEnabled ? 'Enabled' : 'Disabled'}
               </p>
             </div>
@@ -152,13 +148,13 @@ export default function Profile() {
             {!profile.isTwoFactorEnabled ? (
               <button
                 onClick={handleSetup2FA}
-                className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="w-full py-2 bg-brand-red text-white rounded-lg hover:bg-brand-red-hover"
               >
                 Enable 2FA
               </button>
             ) : (
               <div>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-gray-400 mb-4">
                   To disable 2FA, enter your password and 2FA code:
                 </p>
                 <form onSubmit={handleSubmit(handleDisable2FA)} className="space-y-4">
@@ -166,7 +162,7 @@ export default function Profile() {
                     type="password"
                     {...register('password', { required: 'Password is required' })}
                     placeholder="Password"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-4 py-2 border border-gray-600 bg-gray-800 text-white rounded-lg"
                   />
                   <input
                     type="text"
@@ -174,7 +170,7 @@ export default function Profile() {
                     value={twoFAToken}
                     onChange={(e) => setTwoFAToken(e.target.value)}
                     placeholder="2FA Code"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-4 py-2 border border-gray-600 bg-gray-800 text-white rounded-lg"
                   />
                   <button
                     type="submit"
@@ -189,16 +185,16 @@ export default function Profile() {
           </div>
 
           {show2FASetup && qrCode && (
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg space-y-4">
+            <div className="mt-6 p-4 bg-gray-800 border border-gray-700 rounded-lg space-y-4">
               <div>
-                <p className="text-sm text-gray-700 mb-2 font-medium">
+                <p className="text-sm text-gray-300 mb-2 font-medium">
                   Step 1: Scan this QR code with Google Authenticator
                 </p>
                 <img src={qrCode} alt="2FA QR Code" className="mx-auto mb-4 max-w-[200px]" />
               </div>
               
               <div>
-                <p className="text-sm text-gray-700 mb-2 font-medium">
+                <p className="text-sm text-gray-300 mb-2 font-medium">
                   Step 2: Enter the 6-digit code from Google Authenticator
                 </p>
                 <div className="flex gap-2">
@@ -208,17 +204,17 @@ export default function Profile() {
                     value={setup2FAToken}
                     onChange={(e) => setSetup2FAToken(e.target.value.replace(/\D/g, ''))}
                     placeholder="000000"
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-center text-lg tracking-widest"
+                    className="flex-1 px-4 py-2 border border-gray-600 bg-gray-900 text-white rounded-lg text-center text-lg tracking-widest"
                   />
                   <button
                     onClick={handleVerify2FASetup}
                     disabled={setup2FAToken.length !== 6 || isVerifyingSetup}
-                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="px-6 py-2 bg-accent-green text-white rounded-lg hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
                   >
                     {isVerifyingSetup ? 'Verifying...' : 'Verify & Enable'}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-400 mt-2">
                   After scanning, enter the 6-digit code to complete 2FA setup.
                 </p>
               </div>
@@ -229,7 +225,7 @@ export default function Profile() {
                   setQrCode(null)
                   setSetup2FAToken('')
                 }}
-                className="w-full py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                className="w-full py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600"
               >
                 Cancel
               </button>

@@ -49,46 +49,42 @@ export default function Commissions() {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Commission History</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">View all your commission earnings</p>
-      </div>
+    <div className="space-y-6">
 
       {stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          <Card>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card className="bg-[#252525] border-gray-700">
             <CardHeader>
-              <CardTitle className="text-base">Level 1 (F1) Total</CardTitle>
+              <CardTitle className="text-base text-white">Level 1 (F1) Total</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-600">
+              <div className="text-2xl font-bold text-purple-400">
                 {stats.level1.total.toFixed(2)} USDT
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-gray-400 mt-1">
                 {stats.level1.count} commissions
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-[#252525] border-gray-700">
             <CardHeader>
-              <CardTitle className="text-base">Level 2 (F2) Total</CardTitle>
+              <CardTitle className="text-base text-white">Level 2 (F2) Total</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">
+              <div className="text-2xl font-bold text-accent-orange">
                 {stats.level2.total.toFixed(2)} USDT
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-gray-400 mt-1">
                 {stats.level2.count} commissions
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-[#252525] border-gray-700">
             <CardHeader>
-              <CardTitle className="text-base">Total Commissions</CardTitle>
+              <CardTitle className="text-base text-white">Total Commissions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">
+              <div className="text-2xl font-bold text-brand-red">
                 {stats.total.toFixed(2)} USDT
               </div>
             </CardContent>
@@ -96,9 +92,9 @@ export default function Commissions() {
         </div>
       )}
 
-      <Card>
+      <Card className="bg-[#252525] border-gray-700">
         <CardHeader>
-          <CardTitle>Commission Details</CardTitle>
+          <CardTitle className="text-white">Commission Details</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -116,7 +112,7 @@ export default function Commissions() {
             <TableBody>
               {commissions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan="6" className="text-center text-muted-foreground">
+                  <TableCell colSpan="6" className="text-center text-gray-400">
                     No commissions yet
                   </TableCell>
                 </TableRow>
@@ -135,11 +131,11 @@ export default function Commissions() {
                         F{commission.level}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-semibold text-green-600">
+                    <TableCell className="font-semibold text-accent-green">
                       {commission.amount.toFixed(2)} USDT
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="bg-green-50 text-green-800 border-green-200">
+                      <Badge variant="outline" className="bg-accent-green/20 text-accent-green border-accent-green">
                         {commission.status}
                       </Badge>
                     </TableCell>

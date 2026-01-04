@@ -42,6 +42,15 @@ export default {
         },
         "accent-red": "#E98484",
         "accent-red-hover": "#E07070",
+        // Custom dashboard colors
+        "sidebar-bg": "#1A1A1A",
+        "sidebar-text": "#E5E5E5",
+        "sidebar-hover": "#2A2A2A",
+        "sidebar-active": "#333333",
+        "brand-red": "#E63946",
+        "brand-red-hover": "#D62839",
+        "accent-green": "#2ECC71",
+        "accent-orange": "#F39C12",
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",

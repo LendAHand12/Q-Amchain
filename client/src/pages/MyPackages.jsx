@@ -93,15 +93,10 @@ export default function MyPackages() {
     if (myPackage.certificateUrl) {
       return (
         <div className="space-y-4 sm:space-y-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">My Certificate</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Your validator certificate</p>
-          </div>
-
-          <Card className="max-w-2xl mx-auto">
+          <Card className="max-w-2xl mx-auto bg-[#252525] border-gray-700">
             <CardHeader>
-              <CardTitle className="text-lg sm:text-xl">Certificate</CardTitle>
-              <CardDescription className="text-sm">
+              <CardTitle className="text-lg sm:text-xl text-white">Certificate</CardTitle>
+              <CardDescription className="text-sm text-gray-400">
                 {myPackage.package?.name || "Validator Package"}
               </CardDescription>
             </CardHeader>
@@ -110,7 +105,7 @@ export default function MyPackages() {
                 <img
                   src={`${import.meta.env.VITE_API_URL}${myPackage.certificateUrl}`}
                   alt="Certificate"
-                  className="w-full max-w-md rounded-lg border shadow-lg cursor-pointer hover:opacity-90 transition"
+                  className="w-full max-w-md rounded-lg border border-gray-600 shadow-lg cursor-pointer hover:opacity-90 transition"
                   onClick={() => window.open(`${import.meta.env.VITE_API_URL}${myPackage.certificateUrl}`, '_blank')}
                 />
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -120,7 +115,7 @@ export default function MyPackages() {
                     rel="noopener noreferrer"
                     className="flex-1 sm:flex-initial"
                   >
-                    <Button variant="outline" className="w-full sm:w-auto">
+                    <Button variant="outline" className="w-full sm:w-auto border-gray-600 text-white hover:bg-gray-700">
                       View Full Size
                     </Button>
                   </a>
@@ -129,13 +124,13 @@ export default function MyPackages() {
                     download
                     className="flex-1 sm:flex-initial"
                   >
-                    <Button className="w-full sm:w-auto">
+                    <Button className="w-full sm:w-auto bg-brand-red hover:bg-brand-red-hover">
                       Download Certificate
                     </Button>
                   </a>
                 </div>
               </div>
-              <div className="pt-4 border-t text-center text-sm text-muted-foreground">
+              <div className="pt-4 border-t border-gray-700 text-center text-sm text-gray-400">
                 <p>Certificate issued on {formatDate(myPackage.createdAt)}</p>
               </div>
             </CardContent>
@@ -147,46 +142,41 @@ export default function MyPackages() {
     // If no certificate, show package details
     return (
       <div className="space-y-4 sm:space-y-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">My Package</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Your purchased package</p>
-        </div>
-
-        <Card className="max-w-2xl mx-auto">
+        <Card className="max-w-2xl mx-auto bg-[#252525] border-gray-700">
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
               <div>
-                <CardTitle className="text-lg sm:text-xl">{myPackage.package?.name || "Package"}</CardTitle>
-                <CardDescription className="font-mono text-xs sm:text-sm mt-1 break-all">
+                <CardTitle className="text-lg sm:text-xl text-white">{myPackage.package?.name || "Package"}</CardTitle>
+                <CardDescription className="font-mono text-xs sm:text-sm mt-1 break-all text-gray-400">
                   Transaction:{" "}
                   {myPackage.transactionHash ? formatAddress(myPackage.transactionHash) : "N/A"}
                 </CardDescription>
               </div>
-              <Badge variant="default" className="self-start">Active</Badge>
+              <Badge variant="default" className="self-start bg-accent-green text-white">Active</Badge>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm sm:text-base text-muted-foreground">Amount:</span>
-                <span className="font-semibold text-sm sm:text-base">
+                <span className="text-sm sm:text-base text-gray-400">Amount:</span>
+                <span className="font-semibold text-sm sm:text-base text-white">
                   {myPackage.amount} {myPackage.currency}
                 </span>
               </div>
               {myPackage.package?.description && (
                 <div className="mt-4">
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-2">Description:</p>
-                  <p className="text-sm">{myPackage.package.description}</p>
+                  <p className="text-xs sm:text-sm text-gray-400 mb-2">Description:</p>
+                  <p className="text-sm text-gray-300">{myPackage.package.description}</p>
                 </div>
               )}
               {myPackage.transactionHash && (
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mt-4">
-                  <span className="text-sm sm:text-base text-muted-foreground">Transaction:</span>
+                  <span className="text-sm sm:text-base text-gray-400">Transaction:</span>
                   <a
                     href={`https://bscscan.com/tx/${myPackage.transactionHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-mono text-xs sm:text-sm text-primary hover:underline break-all"
+                    className="font-mono text-xs sm:text-sm text-brand-red hover:underline break-all"
                     title={myPackage.transactionHash}
                   >
                     {formatAddress(myPackage.transactionHash)}
@@ -194,8 +184,8 @@ export default function MyPackages() {
                 </div>
               )}
               <div className="flex justify-between items-center">
-                <span className="text-sm sm:text-base text-muted-foreground">Purchase Date:</span>
-                <span className="text-xs sm:text-sm">{formatDate(myPackage.createdAt)}</span>
+                <span className="text-sm sm:text-base text-gray-400">Purchase Date:</span>
+                <span className="text-xs sm:text-sm text-gray-300">{formatDate(myPackage.createdAt)}</span>
               </div>
             </div>
           </CardContent>

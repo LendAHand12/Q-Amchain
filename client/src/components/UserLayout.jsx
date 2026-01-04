@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Home, Package, Network, DollarSign, User, Settings, ChevronRight, ChevronDown } from "lucide-react";
 import logo from "../assets/logo.png";
+import sidebarBg from "../assets/sidebar-background.png";
 
 export default function UserLayout() {
   const { user, logout } = useAuthStore();
@@ -17,12 +18,11 @@ export default function UserLayout() {
   };
 
   const menuItems = [
-    { path: "/dashboard", label: "Dashboard", icon: "📊" },
-    { path: "/dashboard/packages", label: "My Packages", icon: "📦" },
-    { path: "/dashboard/commissions", label: "Commissions", icon: "💰" },
-    { path: "/dashboard/referral-tree", label: "Referral Tree", icon: "🌳" },
-    { path: "/dashboard/withdraw", label: "Withdraw", icon: "💸" },
-    { path: "/dashboard/profile", label: "Profile", icon: "👤" },
+    { path: "/dashboard", label: "Dashboard", icon: Home },
+    { path: "/dashboard/packages", label: "My Packages", icon: Package },
+    { path: "/dashboard/referral-tree", label: "Network", icon: Network },
+    { path: "/dashboard/commissions", label: "Income", icon: DollarSign },
+    { path: "/dashboard/profile", label: "Profile", icon: User },
   ];
 
   const isActive = (path) => {
@@ -33,7 +33,7 @@ export default function UserLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
@@ -44,87 +44,139 @@ export default function UserLayout() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gray-800 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-sidebar-bg text-sidebar-text transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
+        style={{
+          backgroundImage: `url(${sidebarBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center bottom',
+          backgroundRepeat: 'no-repeat',
+        }}
       >
-        <div className="flex flex-col h-full">
-          <div className="p-6 border-b border-gray-700">
+        <div className="flex flex-col h-full relative z-10">
+          {/* Logo */}
+          <div className="p-6">
             <Link
               to="/"
-              className="block mb-2"
+              className="block"
               onClick={() => setSidebarOpen(false)}
             >
-              <img src={logo} alt="Q-Amchain" className="h-8 w-auto" />
+              <img src={logo} alt="QAmChain" className="h-10 w-auto" />
             </Link>
-            <p className="text-sm text-gray-400 mt-1">User Dashboard</p>
           </div>
 
-          <nav className="mt-6 flex-1 overflow-y-auto">
-            {menuItems.map((item) => (
+          {/* Navigation */}
+          <nav className="flex-1 px-3 space-y-1">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center justify-between px-4 py-3 rounded-lg transition-all group ${
+                    active
+                      ? "bg-sidebar-active text-brand-red"
+                      : "text-sidebar-text hover:bg-sidebar-hover hover:text-white"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className={`h-5 w-5 ${active ? "text-brand-red" : ""}`} />
+                    <span className="font-medium">{item.label}</span>
+                  </div>
+                  {active ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  )}
+                </Link>
+              );
+            })}
+
+            {/* Settings */}
+            {/* <div className="pt-4 mt-4 border-t border-gray-700">
               <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setSidebarOpen(false)}
-                className={`flex items-center px-6 py-3 hover:bg-gray-700 transition-colors ${
-                  isActive(item.path) ? "bg-gray-700 border-r-4 border-primary" : ""
-                }`}
+                to="/dashboard/profile"
+                className="flex items-center justify-between px-4 py-3 rounded-lg text-sidebar-text hover:bg-sidebar-hover hover:text-white transition-all group"
               >
-                <span className="mr-3 text-xl">{item.icon}</span>
-                <span>{item.label}</span>
+                <div className="flex items-center gap-3">
+                  <Settings className="h-5 w-5" />
+                  <span className="font-medium">Settings</span>
+                </div>
+                <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
               </Link>
-            ))}
+            </div> */}
           </nav>
 
-          <div className="p-6 border-t border-gray-700">
-            <div className="mb-4">
-              <p className="text-sm text-gray-400">Logged in as</p>
-              <p className="font-semibold">{user?.username || "User"}</p>
-              {user?.refCode && (
-                <p className="text-xs text-gray-500 mt-1">Ref: {user.refCode}</p>
-              )}
+          {/* User Profile */}
+          {/* <div className="p-4 border-t border-gray-700">
+            <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-sidebar-hover transition-colors cursor-pointer">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-red to-orange-500 flex items-center justify-center text-white font-semibold">
+                {user?.username?.charAt(0).toUpperCase() || "U"}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm truncate">{user?.username || "User"}</p>
+                <p className="text-xs text-gray-400 truncate">Account settings</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-gray-400" />
             </div>
-            <button
-              onClick={handleLogout}
-              className="w-full py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm transition-colors"
-            >
-              Logout
-            </button>
-          </div>
+          </div> */}
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-0 min-w-0">
+      <div className="flex-1 lg:ml-0 min-w-0 bg-[#1E1E1E]">
         {/* Top Header */}
-        <header className="bg-card shadow-sm sticky top-0 z-30 border-b">
+        <header className="bg-[#252525] shadow-sm sticky top-0 z-30 border-b border-gray-700">
           <div className="px-4 sm:px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden"
+                className="lg:hidden text-white hover:bg-gray-700"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
               >
                 {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
-              <h2 className="text-lg sm:text-xl font-semibold text-foreground">
-                {menuItems.find((item) => isActive(item.path))?.label || "Dashboard"}
-              </h2>
+              <div>
+                {location.pathname === "/dashboard" ? (
+                  <>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white">
+                      Welcome back, {user?.username || "User"}
+                    </h2>
+                    <p className="text-sm text-gray-400 mt-0.5">
+                      Manage your earnings and invested website traffic.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white">
+                      {menuItems.find((item) => isActive(item.path))?.label || "Dashboard"}
+                    </h2>
+                    <p className="text-sm text-gray-400 mt-0.5">
+                      View and manage your {menuItems.find((item) => isActive(item.path))?.label.toLowerCase()}
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-4">
-              <Link
-                to="/"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="hidden sm:flex text-gray-300 hover:text-white hover:bg-gray-700"
               >
-                View Site
-              </Link>
+                Logout
+              </Button>
             </div>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="p-4 sm:p-6">
+        <main className="p-4 sm:p-6 bg-[#1E1E1E]">
           <Outlet />
         </main>
       </div>
