@@ -1143,3 +1143,122 @@ export const assignPackage = async (req, res) => {
     });
   }
 };
+
+
+// Upload certificate for a user
+export const uploadCertificate = async (req, res) => {
+  try {
+    const { id: userId } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded'
+      });
+    }
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Delete old certificate file if exists
+    if (user.certificateUrl) {
+      const { deleteCertificateFile } = await import('../middleware/upload.middleware.js');
+      deleteCertificateFile(user.certificateUrl);
+    }
+
+    // Update user with new certificate URL
+    const certificateUrl = `/uploads/certificates/${req.file.filename}`;
+    user.certificateUrl = certificateUrl;
+    await user.save();
+
+    // Log admin action
+    await AdminLog.create({
+      adminId: req.admin._id,
+      action: 'upload_certificate',
+      entityType: 'user',
+      entityId: user._id,
+      details: {
+        userId: user._id,
+        username: user.username,
+        certificateUrl
+      },
+      ipAddress: req.ip || req.connection.remoteAddress
+    });
+
+    res.json({
+      success: true,
+      message: 'Certificate uploaded successfully',
+      data: {
+        certificateUrl
+      }
+    });
+  } catch (error) {
+    console.error('Upload certificate error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to upload certificate'
+    });
+  }
+};
+
+// Delete certificate for a user
+export const deleteCertificate = async (req, res) => {
+  try {
+    const { id: userId } = req.params;
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    if (!user.certificateUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'No certificate to delete'
+      });
+    }
+
+    // Delete certificate file
+    const { deleteCertificateFile } = await import('../middleware/upload.middleware.js');
+    deleteCertificateFile(user.certificateUrl);
+
+    // Remove certificate URL from user
+    user.certificateUrl = null;
+    await user.save();
+
+    // Log admin action
+    await AdminLog.create({
+      adminId: req.admin._id,
+      action: 'delete_certificate',
+      entityType: 'user',
+      entityId: user._id,
+      details: {
+        userId: user._id,
+        username: user.username
+      },
+      ipAddress: req.ip || req.connection.remoteAddress
+    });
+
+    res.json({
+      success: true,
+      message: 'Certificate deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete certificate error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete certificate'
+    });
+  }
+};
+

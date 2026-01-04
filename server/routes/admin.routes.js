@@ -31,4 +31,19 @@ router.get("/transactions", checkPermission("transactions.view"), adminControlle
 // Logs
 router.get("/logs", checkPermission("logs.view"), adminController.getLogs);
 
+// Certificate management (moved to user-based)
+router.post("/users/:id/certificate", checkPermission("users.update"), async (req, res, next) => {
+  const { uploadCertificate: uploadMiddleware } = await import("../middleware/upload.middleware.js");
+  uploadMiddleware(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({
+        success: false,
+        message: err.message || "File upload failed"
+      });
+    }
+    adminController.uploadCertificate(req, res);
+  });
+});
+router.delete("/users/:id/certificate", checkPermission("users.update"), adminController.deleteCertificate);
+
 export default router;
