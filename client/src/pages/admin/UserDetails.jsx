@@ -40,9 +40,10 @@ export default function UserDetails() {
   const [newParentRefCode, setNewParentRefCode] = useState("");
   const [moveWithChildren, setMoveWithChildren] = useState(true);
   const [isTransferring, setIsTransferring] = useState(false);
-  const [uploadingCertificate, setUploadingCertificate] = useState(false);
-  const [deletingCertificate, setDeletingCertificate] = useState(false);
+  const [uploadingCertificate, setUploadingCertificate] = useState({ front: false, back: false });
+  const [deletingCertificate, setDeletingCertificate] = useState({ front: false, back: false });
   const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [selectedCertificateUrl, setSelectedCertificateUrl] = useState("");
 
   const {
     register,
@@ -198,40 +199,40 @@ export default function UserDetails() {
     }
   };
 
-  const handleUploadCertificate = async (file) => {
-    if (!file) return;
+  const handleUploadCertificate = async (file, side) => {
+    if (!file || !side) return;
 
-    setUploadingCertificate(true);
+    setUploadingCertificate((prev) => ({ ...prev, [side]: true }));
     try {
       const formData = new FormData();
-      formData.append("certificate", file);
+      formData.append(side, file);
 
       await api.post(`/admin/users/${id}/certificate`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      toast.success("Certificate uploaded successfully");
+      toast.success(`${side.charAt(0).toUpperCase() + side.slice(1)} certificate uploaded successfully`);
       fetchUserDetails(id);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to upload certificate");
+      toast.error(error.response?.data?.message || `Failed to upload ${side} certificate`);
     } finally {
-      setUploadingCertificate(false);
+      setUploadingCertificate((prev) => ({ ...prev, [side]: false }));
     }
   };
 
-  const handleDeleteCertificate = async () => {
-    if (!confirm("Are you sure you want to delete this certificate?")) return;
+  const handleDeleteCertificate = async (side) => {
+    if (!confirm(`Are you sure you want to delete the ${side} certificate?`)) return;
 
-    setDeletingCertificate(true);
+    setDeletingCertificate((prev) => ({ ...prev, [side]: true }));
     try {
-      await api.delete(`/admin/users/${id}/certificate`);
-      toast.success("Certificate deleted successfully");
+      await api.delete(`/admin/users/${id}/certificate?side=${side}`);
+      toast.success(`${side.charAt(0).toUpperCase() + side.slice(1)} certificate deleted successfully`);
       fetchUserDetails(id);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to delete certificate");
+      toast.error(error.response?.data?.message || `Failed to delete ${side} certificate`);
     } finally {
-      setDeletingCertificate(false);
+      setDeletingCertificate((prev) => ({ ...prev, [side]: false }));
     }
   };
 
@@ -557,78 +558,145 @@ export default function UserDetails() {
                   )}
                   {/* Certificate Section */}
                   <div className="col-span-2 mt-4 pt-4 border-t">
-                    <Label className="text-muted-foreground mb-2 block">Certificate</Label>
-                    {userDetails.user.certificateUrl ? (
-                      <div className="flex items-start gap-4">
-                        <div className="relative group">
-                          <img
-                            src={`${import.meta.env.VITE_API_URL}${userDetails.user.certificateUrl}`}
-                            alt="Certificate"
-                            className="w-32 h-32 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition"
-                            onClick={() => setShowCertificateModal(true)}
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/20 rounded-lg">
-                            <ZoomIn className="h-6 w-6 text-white" />
+                    <Label className="text-muted-foreground mb-4 block text-lg font-semibold">Certificates</Label>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Front Side */}
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium">Front Side</Label>
+                        {userDetails.user.certificateFrontUrl ? (
+                          <div className="flex flex-col gap-3">
+                            <div className="relative group w-full max-w-sm">
+                              <img
+                                src={`${import.meta.env.VITE_API_URL}${userDetails.user.certificateFrontUrl}`}
+                                alt="Front Certificate"
+                                className="w-full aspect-video object-cover rounded-lg border cursor-pointer hover:opacity-80 transition"
+                                onClick={() => {
+                                  setSelectedCertificateUrl(userDetails.user.certificateFrontUrl);
+                                  setShowCertificateModal(true);
+                                }}
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/20 rounded-lg pointer-events-none">
+                                <ZoomIn className="h-8 w-8 text-white" />
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedCertificateUrl(userDetails.user.certificateFrontUrl);
+                                  setShowCertificateModal(true);
+                                }}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                View
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteCertificate('front')}
+                                disabled={deletingCertificate.front}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                {deletingCertificate.front ? "Deleting..." : "Delete"}
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShowCertificateModal(true)}
-                          >
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            View Full Size
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={handleDeleteCertificate}
-                            disabled={deletingCertificate}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            {deletingCertificate ? "Deleting..." : "Delete Certificate"}
-                          </Button>
-                        </div>
+                        ) : (
+                          <div className="flex flex-col gap-2">
+                            <label className="cursor-pointer">
+                              <input
+                                type="file"
+                                accept="image/*,.pdf"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    handleUploadCertificate(file, 'front');
+                                  }
+                                }}
+                                disabled={uploadingCertificate.front}
+                              />
+                              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 flex flex-col items-center justify-center hover:bg-muted/50 transition bg-muted/20">
+                                <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+                                <p className="text-sm font-medium">Upload Front Side</p>
+                                <p className="text-xs text-muted-foreground mt-1">JPG, PNG (max 5MB)</p>
+                                {uploadingCertificate.front && <p className="text-xs text-primary mt-2">Uploading...</p>}
+                              </div>
+                            </label>
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <label className="cursor-pointer">
-                          <input
-                            type="file"
-                            accept="image/*,.pdf"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleUploadCertificate(file);
-                              }
-                            }}
-                            disabled={uploadingCertificate}
-                          />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={uploadingCertificate}
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.currentTarget.previousElementSibling?.click();
-                            }}
-                          >
-                            {uploadingCertificate ? (
-                              <span>Uploading...</span>
-                            ) : (
-                              <>
-                                <Upload className="h-4 w-4 mr-2" />
-                                Upload Certificate
-                              </>
-                            )}
-                          </Button>
-                        </label>
-                        <p className="text-sm text-muted-foreground">JPG, PNG or PDF (max 5MB)</p>
+
+                      {/* Back Side */}
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium">Back Side</Label>
+                        {userDetails.user.certificateBackUrl ? (
+                          <div className="flex flex-col gap-3">
+                            <div className="relative group w-full max-w-sm">
+                              <img
+                                src={`${import.meta.env.VITE_API_URL}${userDetails.user.certificateBackUrl}`}
+                                alt="Back Certificate"
+                                className="w-full aspect-video object-cover rounded-lg border cursor-pointer hover:opacity-80 transition"
+                                onClick={() => {
+                                  setSelectedCertificateUrl(userDetails.user.certificateBackUrl);
+                                  setShowCertificateModal(true);
+                                }}
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/20 rounded-lg pointer-events-none">
+                                <ZoomIn className="h-8 w-8 text-white" />
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedCertificateUrl(userDetails.user.certificateBackUrl);
+                                  setShowCertificateModal(true);
+                                }}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                View
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteCertificate('back')}
+                                disabled={deletingCertificate.back}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                {deletingCertificate.back ? "Deleting..." : "Delete"}
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-2">
+                            <label className="cursor-pointer">
+                              <input
+                                type="file"
+                                accept="image/*,.pdf"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    handleUploadCertificate(file, 'back');
+                                  }
+                                }}
+                                disabled={uploadingCertificate.back}
+                              />
+                              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 flex flex-col items-center justify-center hover:bg-muted/50 transition bg-muted/20">
+                                <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+                                <p className="text-sm font-medium">Upload Back Side</p>
+                                <p className="text-xs text-muted-foreground mt-1">JPG, PNG (max 5MB)</p>
+                                {uploadingCertificate.back && <p className="text-xs text-primary mt-2">Uploading...</p>}
+                              </div>
+                            </label>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               </form>
@@ -1136,11 +1204,11 @@ export default function UserDetails() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex items-center justify-center p-4">
-            {userDetails?.user?.certificateUrl && (
+            {selectedCertificateUrl && (
               <img
-                src={`${import.meta.env.VITE_API_URL}${userDetails.user.certificateUrl}`}
+                src={`${import.meta.env.VITE_API_URL}${selectedCertificateUrl}`}
                 alt="Certificate"
-                className="max-w-full max-h-[70vh] object-contain rounded-lg"
+                className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
               />
             )}
           </div>
@@ -1149,7 +1217,7 @@ export default function UserDetails() {
               Close
             </Button>
             <a
-              href={`${import.meta.env.VITE_API_URL}${userDetails?.user?.certificateUrl}`}
+              href={`${import.meta.env.VITE_API_URL}${selectedCertificateUrl}`}
               download
               target="_blank"
               rel="noopener noreferrer"

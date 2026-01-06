@@ -1145,15 +1145,15 @@ export const assignPackage = async (req, res) => {
 };
 
 
-// Upload certificate for a user
+// Upload certificate for a user (front and/or back)
 export const uploadCertificate = async (req, res) => {
   try {
     const { id: userId } = req.params;
 
-    if (!req.file) {
+    if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'No file uploaded'
+        message: 'No files uploaded'
       });
     }
 
@@ -1166,15 +1166,27 @@ export const uploadCertificate = async (req, res) => {
       });
     }
 
-    // Delete old certificate file if exists
-    if (user.certificateUrl) {
-      const { deleteCertificateFile } = await import('../middleware/upload.middleware.js');
-      deleteCertificateFile(user.certificateUrl);
+    const { deleteCertificateFile } = await import('../middleware/upload.middleware.js');
+    const updatedPaths = {};
+
+    // Handle front certificate
+    if (req.files.front) {
+      if (user.certificateFrontUrl) {
+        deleteCertificateFile(user.certificateFrontUrl);
+      }
+      user.certificateFrontUrl = `/uploads/certificates/${req.files.front[0].filename}`;
+      updatedPaths.certificateFrontUrl = user.certificateFrontUrl;
     }
 
-    // Update user with new certificate URL
-    const certificateUrl = `/uploads/certificates/${req.file.filename}`;
-    user.certificateUrl = certificateUrl;
+    // Handle back certificate
+    if (req.files.back) {
+      if (user.certificateBackUrl) {
+        deleteCertificateFile(user.certificateBackUrl);
+      }
+      user.certificateBackUrl = `/uploads/certificates/${req.files.back[0].filename}`;
+      updatedPaths.certificateBackUrl = user.certificateBackUrl;
+    }
+
     await user.save();
 
     // Log admin action
@@ -1186,17 +1198,15 @@ export const uploadCertificate = async (req, res) => {
       details: {
         userId: user._id,
         username: user.username,
-        certificateUrl
+        ...updatedPaths
       },
       ipAddress: req.ip || req.connection.remoteAddress
     });
 
     res.json({
       success: true,
-      message: 'Certificate uploaded successfully',
-      data: {
-        certificateUrl
-      }
+      message: 'Certificates uploaded successfully',
+      data: updatedPaths
     });
   } catch (error) {
     console.error('Upload certificate error:', error);
@@ -1211,6 +1221,7 @@ export const uploadCertificate = async (req, res) => {
 export const deleteCertificate = async (req, res) => {
   try {
     const { id: userId } = req.params;
+    const { side } = req.query; // front or back
 
     // Find user
     const user = await User.findById(userId);
@@ -1221,19 +1232,28 @@ export const deleteCertificate = async (req, res) => {
       });
     }
 
-    if (!user.certificateUrl) {
-      return res.status(400).json({
-        success: false,
-        message: 'No certificate to delete'
-      });
+    const { deleteCertificateFile } = await import('../middleware/upload.middleware.js');
+
+    if (side === 'front') {
+      if (!user.certificateFrontUrl) {
+        return res.status(400).json({ success: false, message: 'No front certificate to delete' });
+      }
+      deleteCertificateFile(user.certificateFrontUrl);
+      user.certificateFrontUrl = null;
+    } else if (side === 'back') {
+      if (!user.certificateBackUrl) {
+        return res.status(400).json({ success: false, message: 'No back certificate to delete' });
+      }
+      deleteCertificateFile(user.certificateBackUrl);
+      user.certificateBackUrl = null;
+    } else {
+      // Default: delete both if side is not specified
+      if (user.certificateFrontUrl) deleteCertificateFile(user.certificateFrontUrl);
+      if (user.certificateBackUrl) deleteCertificateFile(user.certificateBackUrl);
+      user.certificateFrontUrl = null;
+      user.certificateBackUrl = null;
     }
 
-    // Delete certificate file
-    const { deleteCertificateFile } = await import('../middleware/upload.middleware.js');
-    deleteCertificateFile(user.certificateUrl);
-
-    // Remove certificate URL from user
-    user.certificateUrl = null;
     await user.save();
 
     // Log admin action
@@ -1244,14 +1264,15 @@ export const deleteCertificate = async (req, res) => {
       entityId: user._id,
       details: {
         userId: user._id,
-        username: user.username
+        username: user.username,
+        side: side || 'both'
       },
       ipAddress: req.ip || req.connection.remoteAddress
     });
 
     res.json({
       success: true,
-      message: 'Certificate deleted successfully'
+      message: `Certificate ${side || 'both side(s)'} deleted successfully`
     });
   } catch (error) {
     console.error('Delete certificate error:', error);

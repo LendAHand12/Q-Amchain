@@ -119,7 +119,11 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    certificateUrl: {
+    certificateFrontUrl: {
+      type: String,
+      default: null,
+    },
+    certificateBackUrl: {
       type: String,
       default: null,
     },

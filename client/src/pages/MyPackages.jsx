@@ -32,12 +32,14 @@ export default function MyPackages() {
         setMyPackage(packages[0]);
       }
       
-      // Fetch user data to get certificate using existing /users/me endpoint
+      // Fetch user data to get certificates using existing /users/me endpoint
       const userResponse = await api.get("/users/me");
-      if (userResponse.data.data.certificateUrl) {
+      const user = userResponse.data.data;
+      if (user.certificateFrontUrl || user.certificateBackUrl) {
         setMyPackage(prev => ({
           ...prev,
-          certificateUrl: userResponse.data.data.certificateUrl
+          certificateFrontUrl: user.certificateFrontUrl,
+          certificateBackUrl: user.certificateBackUrl
         }));
       }
     } catch (error) {
@@ -86,49 +88,89 @@ export default function MyPackages() {
 
   // If user has purchased a package, only display that package
   if (myPackage) {
-    // If certificate exists, show only certificate
-    if (myPackage.certificateUrl) {
+    // If certificates exist, show them
+    if (myPackage.certificateFrontUrl || myPackage.certificateBackUrl) {
       return (
         <div className="space-y-4 sm:space-y-6">
-          <Card className="max-w-2xl mx-auto bg-[#252525] border-gray-700">
+          <Card className="max-w-4xl mx-auto bg-[#252525] border-gray-700">
             <CardHeader>
-              <CardTitle className="text-lg sm:text-xl text-white">Certificate</CardTitle>
+              <CardTitle className="text-lg sm:text-xl text-white">Certificates</CardTitle>
               <CardDescription className="text-sm text-gray-400">
                 {myPackage.package?.name || "Validator Package"}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col items-center gap-4">
-                <img
-                  src={`${import.meta.env.VITE_API_URL}${myPackage.certificateUrl}`}
-                  alt="Certificate"
-                  className="w-full max-w-md rounded-lg border border-gray-600 shadow-lg cursor-pointer hover:opacity-90 transition"
-                  onClick={() => window.open(`${import.meta.env.VITE_API_URL}${myPackage.certificateUrl}`, '_blank')}
-                />
-                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  <a
-                    href={`${import.meta.env.VITE_API_URL}${myPackage.certificateUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 sm:flex-initial"
-                  >
-                    <Button variant="outline" className="w-full sm:w-auto border-gray-600 text-black hover:bg-gray-700">
-                      View Full Size
-                    </Button>
-                  </a>
-                  <a
-                    href={`${import.meta.env.VITE_API_URL}${myPackage.certificateUrl}`}
-                    download
-                    className="flex-1 sm:flex-initial"
-                  >
-                    <Button className="w-full sm:w-auto bg-brand-red hover:bg-brand-red-hover">
-                      Download Certificate
-                    </Button>
-                  </a>
-                </div>
+            <CardContent className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Front Side */}
+                {myPackage.certificateFrontUrl && (
+                  <div className="flex flex-col items-center gap-4">
+                    <p className="text-sm font-medium text-gray-300">Front Side</p>
+                    <img
+                      src={`${import.meta.env.VITE_API_URL}${myPackage.certificateFrontUrl}`}
+                      alt="Front Certificate"
+                      className="w-full rounded-lg border border-gray-600 shadow-lg cursor-pointer hover:opacity-90 transition"
+                      onClick={() => window.open(`${import.meta.env.VITE_API_URL}${myPackage.certificateFrontUrl}`, '_blank')}
+                    />
+                    <div className="flex flex-col sm:flex-row gap-2 w-full">
+                      <a
+                        href={`${import.meta.env.VITE_API_URL}${myPackage.certificateFrontUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1"
+                      >
+                        <Button variant="outline" className="w-full border-gray-600 text-black hover:bg-gray-700">
+                          View
+                        </Button>
+                      </a>
+                      <a
+                        href={`${import.meta.env.VITE_API_URL}${myPackage.certificateFrontUrl}`}
+                        download
+                        className="flex-1"
+                      >
+                        <Button className="w-full bg-brand-red hover:bg-brand-red-hover">
+                          Download
+                        </Button>
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Back Side */}
+                {myPackage.certificateBackUrl && (
+                  <div className="flex flex-col items-center gap-4">
+                    <p className="text-sm font-medium text-gray-300">Back Side</p>
+                    <img
+                      src={`${import.meta.env.VITE_API_URL}${myPackage.certificateBackUrl}`}
+                      alt="Back Certificate"
+                      className="w-full rounded-lg border border-gray-600 shadow-lg cursor-pointer hover:opacity-90 transition"
+                      onClick={() => window.open(`${import.meta.env.VITE_API_URL}${myPackage.certificateBackUrl}`, '_blank')}
+                    />
+                    <div className="flex flex-col sm:flex-row gap-2 w-full">
+                      <a
+                        href={`${import.meta.env.VITE_API_URL}${myPackage.certificateBackUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1"
+                      >
+                        <Button variant="outline" className="w-full border-gray-600 text-black hover:bg-gray-700">
+                          View
+                        </Button>
+                      </a>
+                      <a
+                        href={`${import.meta.env.VITE_API_URL}${myPackage.certificateBackUrl}`}
+                        download
+                        className="flex-1"
+                      >
+                        <Button className="w-full bg-brand-red hover:bg-brand-red-hover">
+                          Download
+                        </Button>
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="pt-4 border-t border-gray-700 text-center text-sm text-gray-400">
-                <p>Certificate issued on {formatDate(myPackage.createdAt)}</p>
+                <p>Certificates issued on {formatDate(myPackage.createdAt)}</p>
               </div>
             </CardContent>
           </Card>

@@ -18,11 +18,11 @@ const storage = multer.diskStorage({
     cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
-    // Generate unique filename: userId-timestamp.ext
     const userId = req.params.id;
+    const fieldName = file.fieldname;
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const ext = path.extname(file.originalname);
-    cb(null, `cert-${userId}-${uniqueSuffix}${ext}`);
+    cb(null, `cert-${userId}-${fieldName}-${uniqueSuffix}${ext}`);
   }
 });
 
@@ -46,7 +46,10 @@ export const uploadCertificate = multer({
     fileSize: 5 * 1024 * 1024 // 5MB limit
   },
   fileFilter: fileFilter
-}).single('certificate');
+}).fields([
+  { name: 'front', maxCount: 1 },
+  { name: 'back', maxCount: 1 }
+]);
 
 // Helper function to delete certificate file
 export const deleteCertificateFile = (certificateUrl) => {
