@@ -83,8 +83,8 @@ export default function Packages() {
 
 			{/* Packages Cards Section */}
 			<section className="min-h-screen bg-[#060213] flex items-center">
-				<div className="container mx-auto px-4">
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+				<div className="lg:container mx-auto px-4">
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-3 lg:8 max-w-7xl mx-auto">
 						{packages.map((pkg) => (
 							<PackageCard key={pkg._id} pkg={pkg} isAuthenticated={isAuthenticated} />
 						))}

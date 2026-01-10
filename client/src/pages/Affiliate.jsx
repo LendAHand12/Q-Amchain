@@ -87,13 +87,18 @@ export default function Affiliate() {
 					</div>
 
 					{/* Commission Cards */}
-					<div className="flex flex-col lg:flex-row gap-8 justify-center items-center max-w-6xl mx-auto">
+					<div className="flex flex-col lg:flex-row gap-14 justify-center items-center max-w-6xl mx-auto relative">
 						{/* Level 1 Card */}
 						<div
 							className="w-[516px] h-[262px] rounded-[19px] relative"
 							style={{
-								background: "rgba(255, 255, 255, 0.1)",
-								backdropFilter: "blur(12px)",
+								zIndex: "2",
+								background: "rgba(36, 35, 35, 0.64)",
+								borderRadius: "16px",
+								boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+								backdropFilter: "blur(8.5px)",
+								WebkitBackdropFilter: "blur(8.5px)",
+								border: "1px solid rgba(175, 175, 175, 0.3)",
 							}}
 						>
 							{/* Header with Gradient Border */}
@@ -132,12 +137,31 @@ export default function Affiliate() {
 							</div>
 						</div>
 						{/* Link 2 Level Card */}
+						<div className="absolute" style={{ zIndex: 1 }}>
+							<svg xmlns="http://www.w3.org/2000/svg" width="96" height="97" viewBox="0 0 96 97" fill="none">
+								<path
+									d="M-9.82285e-05 8.66016L8.66016 17.3204L17.3204 8.66016L8.66016 -9.82285e-05L-9.82285e-05 8.66016ZM8.66016 8.66016V10.1602H9.41016V8.66016V7.16016H8.66016V8.66016ZM10.9102 8.66016V10.1602H11.6602V8.66016V7.16016H10.9102V8.66016ZM11.6602 8.66016V10.1602C13.3658 10.1602 15.0448 10.271 16.6905 10.4856L16.8845 8.99825L17.0785 7.51085C15.3045 7.27944 13.4959 7.16016 11.6602 7.16016V8.66016ZM26.9717 11.6954L26.3971 13.081C29.5262 14.3786 32.4478 16.0774 35.0975 18.1136L36.0115 16.9242L36.9255 15.7348C34.0703 13.5407 30.9209 11.7092 27.5463 10.3098L26.9717 11.6954ZM43.3961 24.3088L42.2068 25.2228C44.243 27.8725 45.9417 30.7941 47.2393 33.9232L48.6249 33.3486L50.0105 32.7741C48.6111 29.3994 46.7796 26.25 44.5855 23.3948L43.3961 24.3088ZM51.3221 43.4358L49.8347 43.6298C50.0493 45.2755 50.1602 46.9545 50.1602 48.6602H51.6602H53.1602C53.1602 46.8244 53.0409 45.0158 52.8095 43.2418L51.3221 43.4358ZM51.6602 48.6602H50.1602V50.1602H51.6602H53.1602V48.6602H51.6602ZM51.6602 53.1602H50.1602V54.6602H51.6602H53.1602V53.1602H51.6602ZM51.6602 54.6602H50.1602C50.1602 56.4959 50.2794 58.3045 50.5108 60.0785L51.9982 59.8845L53.4856 59.6905C53.271 58.0448 53.1602 56.3658 53.1602 54.6602H51.6602ZM54.6954 69.9717L53.3098 70.5463C54.7092 73.9209 56.5407 77.0703 58.7348 79.9255L59.9242 79.0115L61.1136 78.0975C59.0774 75.4478 57.3786 72.5262 56.081 69.3971L54.6954 69.9717ZM67.3088 86.3961L66.3948 87.5855C69.25 89.7796 72.3994 91.6111 75.7741 93.0105L76.3486 91.6249L76.9232 90.2393C73.7941 88.9417 70.8725 87.243 68.2228 85.2068L67.3088 86.3961ZM86.4358 94.3221L86.2418 95.8095C88.0158 96.0409 89.8244 96.1602 91.6602 96.1602V94.6602V93.1602C89.9545 93.1602 88.2755 93.0493 86.6298 92.8347L86.4358 94.3221ZM91.6602 94.6602V96.1602H92.5352V94.6602V93.1602H91.6602V94.6602ZM94.2852 94.6602V96.1602H95.1602V94.6602V93.1602H94.2852V94.6602Z"
+									fill="url(#paint0_linear_204_20270)"
+								/>
+								<defs>
+									<linearGradient id="paint0_linear_204_20270" x1="-10.3276" y1="51.6602" x2="107.579" y2="49.1698" gradientUnits="userSpaceOnUse">
+										<stop stop-color="#BF1727" />
+										<stop offset="1" stop-color="#E8494F" />
+									</linearGradient>
+								</defs>
+							</svg>
+						</div>
 						{/* Level 2 Card */}
 						<div
 							className="w-[516px] h-[262px] rounded-[19px] relative"
 							style={{
-								background: "rgba(255, 255, 255, 0.1)",
-								backdropFilter: "blur(12px)",
+								zIndex: "2",
+								background: "rgba(36, 35, 35, 0.64)",
+								borderRadius: "16px",
+								boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+								backdropFilter: "blur(8.5px)",
+								WebkitBackdropFilter: "blur(8.5px)",
+								border: "1px solid rgba(175, 175, 175, 0.3)",
 							}}
 						>
 							{/* Header with Gradient Border */}
