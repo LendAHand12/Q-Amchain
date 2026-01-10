@@ -113,7 +113,26 @@
   pointer-events: none;
 }
 
-.border-gradient.variant-2::before {
+.gradient-border.variant-1::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px; /* độ dày border */
+
+  background: linear-gradient(
+    225deg,
+    #FFFFFF 0%,
+    #DE2B34 100%
+  );
+
+  border-radius: inherit;
+  pointer-events: none;
+
+  --m: conic-gradient(#000 0 0);
+  mask: var(--m) content-box exclude, var(--m);
+}
+
+.gradient-border.variant-2::before {
   content: "";
   position: absolute;
   inset: 0;
