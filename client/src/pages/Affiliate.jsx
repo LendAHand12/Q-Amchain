@@ -238,7 +238,7 @@ export default function Affiliate() {
 
 					{/* Steps Container */}
 					<div className="max-w-[1248px] mx-auto relative">
-						<div className="relative w-full min-h-[488px] rounded-xl px-0 p-10 flex items-center justify-center border-gradient variant-2">
+						<div className="relative w-full min-h-[488px] rounded-xl px-0 p-10 flex items-center justify-center gradient-border variant-2">
 							{/* Steps Row */}
 							<div className="flex gap-[30px] items-start justify-center w-full h-[350px]">
 								{steps.map((step, index) => (
@@ -257,7 +257,7 @@ export default function Affiliate() {
 					backgroundImage: `url(${affiliateHero3})`,
 				}}
 			>
-				<div className="relative z-10 container px-0 mx-auto">
+				<div className="relative z-10 container mx-auto">
 					<div className="max-w-4xl">
 						<h2 className="text-left leading-tight mb-6">
 							<div

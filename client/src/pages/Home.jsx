@@ -16,7 +16,7 @@ import speedIcon from "@/assets/icons/speed.png";
 // Custom Card Component using pure flexbox - responsive design
 const CustomCard = ({ icon, title, description }) => {
 	return (
-		<div className="h-[252px] w-full max-w-sm mx-auto bg-[#1A1B1D] rounded-2xl backdrop-blur-[10px] overflow-hidden border-2 border-transparent bg-gradient-to-bl from-[#3D3434] from-0% to-[#DE2B34] to-100% p-[2px]">
+		<div className="h-[252px] w-full max-w-sm mx-auto bg-[#1A1B1D] rounded-2xl backdrop-blur-[10px] overflow-hidden relative gradient-border variant-1 p-[2px]">
 			{/* Inner content with background */}
 			<div className="h-full w-full bg-[#1A1B1D] rounded-xl p-4 sm:p-6 lg:p-7 flex flex-col">
 				{/* Icon */}
