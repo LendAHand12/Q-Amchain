@@ -57,6 +57,9 @@ export default function Header() {
 						<Link to="/faq" className={`px-1 py-1 text-base font-normal uppercase tracking-wide transition-colors ${isActive("/faq") ? "text-[#EC3535]" : "text-white hover:text-[#EC3535]"}`}>
 							FAQ
 						</Link>
+						<Link to="/login" className={`px-1 py-1 text-base font-normal uppercase tracking-wide transition-colors ${isActive("/faq") ? "text-[#EC3535]" : "text-white hover:text-[#EC3535]"}`}>
+							Login
+						</Link>
 					</div>
 
 					{/* Region Icon */}
@@ -130,6 +133,13 @@ export default function Header() {
 								onClick={closeMobileMenu}
 							>
 								FAQ
+							</Link>
+							<Link
+								to="/login"
+								className={`px-4 py-4 text-lg font-normal uppercase tracking-wide transition-all duration-300 ease-out rounded-xl transform hover:scale-[1.02] hover:shadow-lg ${isActive("/login") ? "text-[#EC3535] bg-gradient-to-r from-[#EC3535]/20 to-[#EC3535]/10 shadow-md" : "text-white hover:text-[#EC3535] hover:bg-gradient-to-r hover:from-[#EC3535]/10 hover:to-[#EC3535]/5"}`}
+								onClick={closeMobileMenu}
+							>
+								Login
 							</Link>
 
 							{/* Divider */}
