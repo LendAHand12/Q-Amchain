@@ -45,8 +45,8 @@ function App() {
       <Toaster position="top-right" />
       <Routes>
         {/* Public routes */}
+        <Route path="/" element={<Home />} />
         <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
           <Route path="about" element={<About />} />
           <Route path="packages" element={<Packages />} />
           <Route path="affiliate" element={<Affiliate />} />

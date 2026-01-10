@@ -1,3 +1,6 @@
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&family=Space+Grotesk:wght@300..700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -94,3 +97,62 @@
   }
 }
 
+.gradient-border {
+  border-radius: 16px;
+  position: relative;
+}
+.gradient-border:before {
+  content:"";
+  position: absolute;
+  inset: 0;
+  padding: 1px; /* the border length */
+  background: linear-gradient(to bottom,#ffff,#000);
+  border-radius: inherit;
+  --m:conic-gradient(#000 0 0);
+  mask: var(--m) content-box exclude,var(--m);
+  pointer-events: none;
+}
+
+.border-gradient.variant-2::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px; /* độ dày border */
+
+  background: linear-gradient(
+    to right,
+    #7B3914 50%,
+    #7B3914 10%
+  );
+
+  border-radius: inherit;
+  pointer-events: none;
+
+  --m: conic-gradient(#000 0 0);
+  mask: var(--m) content-box exclude, var(--m);
+}
+
+.glass-card {
+  width: 403px;
+  height: 585px;
+  border-radius: 16px;
+
+  background: rgba(6, 2, 19, 0.1);
+  backdrop-filter: blur(67.5px);
+
+  box-shadow:
+    inset 0px 21px 135px rgba(220, 59, 61, 0),
+    inset 0px 34px 51px rgba(230, 137, 138, 0.29),
+    inset 0px 4px 13px rgba(255, 255, 255, 1);
+
+  transition: box-shadow 0.35s ease, background 0.35s ease;
+}
+
+.glass-card:hover {
+  background: rgba(120, 30, 50, 0.18);
+
+  box-shadow:
+    inset 0px 21px 135px rgba(255, 90, 90, 0.35),
+    inset 0px 34px 51px rgba(255, 150, 150, 0.45),
+    inset 0px 4px 13px rgba(255, 255, 255, 1);
+}
