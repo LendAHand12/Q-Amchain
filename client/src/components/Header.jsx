@@ -57,7 +57,7 @@ export default function Header() {
 						<Link to="/faq" className={`px-1 py-1 text-base font-normal uppercase tracking-wide transition-colors ${isActive("/faq") ? "text-[#EC3535]" : "text-white hover:text-[#EC3535]"}`}>
 							FAQ
 						</Link>
-						<Link to="/login" className={`px-1 py-1 text-base font-normal uppercase tracking-wide transition-colors ${isActive("/faq") ? "text-[#EC3535]" : "text-white hover:text-[#EC3535]"}`}>
+						<Link to="/login" className={`px-1 py-1 text-base font-normal uppercase tracking-wide transition-colors ${isActive("/login") ? "text-[#EC3535]" : "text-white hover:text-[#EC3535]"}`}>
 							Login
 						</Link>
 					</div>

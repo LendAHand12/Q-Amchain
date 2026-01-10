@@ -2,9 +2,9 @@ import { Link } from "react-router-dom";
 
 export default function PackageCard({ pkg, isAuthenticated }) {
 	return (
-		<div className="relative flex flex-col items-center gap-8 p-8 w-[403px] h-[629px] glass-card">
+		<div className="flex flex-col items-center p-8 w-full max-w-[403px] glass-card">
 			{/* Header Section with Border Frame */}
-			<div className="w-[255px] h-[174px] rounded-2xl">
+			<div className="w-[255px] rounded-2xl mb-6">
 				{/* Inner content area */}
 				<div className="flex flex-col items-center justify-between py-1 inset-[1.73px] rounded-2xl bg-transparent rounded-[16px] gradient-border">
 					{/* Package Title */}
@@ -43,23 +43,23 @@ export default function PackageCard({ pkg, isAuthenticated }) {
 			</div>
 
 			{/* Description */}
-			<div className="">
-				<p
-					className="text-white text-center"
-					style={{
-						fontFamily: "Space Grotesk, sans-serif",
-						fontSize: "16px",
-						lineHeight: "1.5625em",
-					}}
-				>
-					{pkg.description ||
-						`${pkg.name} – License & Certificate Purchase grants a platform-issued Validator License with the right to participate in transaction validation on QAMCHAIN. An official ${pkg.name} Certificate is issued as proof. ${pkg.name} positions are limited. All sales are final. Validator Licenses are transferable and inheritable after six (6) months. This license grants validation rights only and does not represent equity or ownership.`}
-				</p>
-			</div>
+		<div className="w-full px-4 mb-6 flex-1 flex flex-col justify-start">
+			<p
+				className="text-white text-center"
+				style={{
+					fontFamily: "Space Grotesk, sans-serif",
+					fontSize: "16px",
+					lineHeight: "1.5625em",
+				}}
+			>
+				{pkg.description ||
+					`${pkg.name} – License & Certificate Purchase grants a platform-issued Validator License with the right to participate in transaction validation on QAMCHAIN. An official ${pkg.name} Certificate is issued as proof. ${pkg.name} positions are limited. All sales are final. Validator Licenses are transferable and inheritable after six (6) months. This license grants validation rights only and does not represent equity or ownership.`}
+			</p>
+		</div>
 
 			{/* Features List (if available) */}
 			{pkg.features && pkg.features.length > 0 && (
-				<div className="absolute left-[39px] top-[480px] w-[335px]">
+				<div className="w-full px-4 mb-6">
 					<ul className="space-y-2">
 						{pkg.features.map((feature, idx) => (
 							<li key={idx} className="text-white text-sm flex items-center gap-2">
@@ -72,11 +72,11 @@ export default function PackageCard({ pkg, isAuthenticated }) {
 			)}
 
 			{/* Button */}
-			<div className="absolute left-[75px] top-[555px] w-[254px] h-[64px]">
+			<div className="w-full max-w-[254px] absolute -bottom-[30px]">
 				{isAuthenticated ? (
-					<Link to="/dashboard" className="block w-full h-full">
+					<Link to="/dashboard" className="block w-full">
 						<button
-							className="w-full h-full bg-[#EC3535] rounded-lg flex items-center justify-center gap-3 text-white font-bold uppercase tracking-wide hover:bg-[#DC2626] transition-colors duration-200"
+							className="w-full h-[64px] bg-[#EC3535] rounded-lg flex items-center justify-center gap-3 text-white font-bold uppercase tracking-wide hover:bg-[#DC2626] transition-colors duration-200"
 							style={{
 								fontFamily: "Space Grotesk, sans-serif",
 								fontSize: "16px",
@@ -91,9 +91,9 @@ export default function PackageCard({ pkg, isAuthenticated }) {
 						</button>
 					</Link>
 				) : (
-					<Link to="/register" className="block w-full h-full">
+					<Link to="/register" className="block w-full">
 						<button
-							className="w-full h-full bg-[#EC3535] rounded-lg flex items-center justify-center gap-3 text-white font-bold uppercase tracking-wide hover:bg-[#DC2626] transition-colors duration-200"
+							className="w-full h-[64px] bg-[#EC3535] rounded-lg flex items-center justify-center gap-3 text-white font-bold uppercase tracking-wide hover:bg-[#DC2626] transition-colors duration-200"
 							style={{
 								fontFamily: "Space Grotesk, sans-serif",
 								fontSize: "16px",

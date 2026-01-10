@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, Package, Network, DollarSign, User, Settings, ChevronRight, ChevronDown } from "lucide-react";
+import { Menu, X, Home, Package, Network, DollarSign, User, Settings, ChevronRight, ChevronDown, LogOut } from "lucide-react";
 import logo from "../assets/logo.png";
 import sidebarBg from "../assets/sidebar-background.png";
 
@@ -68,6 +68,7 @@ export default function UserLayout() {
 
           {/* Navigation */}
           <nav className="flex-1 px-3 space-y-1">
+            {/* Dashboard Navigation Items */}
             {menuItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
@@ -95,19 +96,19 @@ export default function UserLayout() {
               );
             })}
 
-            {/* Settings */}
-            {/* <div className="pt-4 mt-4 border-t border-gray-700">
-              <Link
-                to="/dashboard/profile"
-                className="flex items-center justify-between px-4 py-3 rounded-lg text-sidebar-text hover:bg-sidebar-hover hover:text-white transition-all group"
+            {/* Logout Button (Mobile & Desktop Sidebar) */}
+            <div className="pt-4 mt-4 border-t border-gray-700 lg:hidden">
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-between w-full px-4 py-3 rounded-lg text-sidebar-text hover:bg-sidebar-hover hover:text-white transition-all group"
               >
                 <div className="flex items-center gap-3">
-                  <Settings className="h-5 w-5" />
-                  <span className="font-medium">Settings</span>
+                  <LogOut className="h-5 w-5" />
+                  <span className="font-medium">Logout</span>
                 </div>
                 <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-            </div> */}
+              </button>
+            </div>
           </nav>
 
           {/* User Profile */}

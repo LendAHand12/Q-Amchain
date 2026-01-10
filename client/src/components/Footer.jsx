@@ -33,7 +33,7 @@ export default function Footer() {
 								<img src={emailIcon} alt="Email" className="w-full h-full" />
 							</div>
 							<div className="px-1">
-								<span className="text-[#E9E9E9] text-sm leading-6 font-normal">support@q-amchain.com</span>
+								<span className="text-[#E9E9E9] text-sm leading-6 font-normal">support@ameritecps.com</span>
 							</div>
 						</div>
 
