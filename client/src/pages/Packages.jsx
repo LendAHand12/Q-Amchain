@@ -37,14 +37,14 @@ export default function Packages() {
 		<div className="min-h-screen">
 			{/* Hero Section */}
 			<section
-				className="relative h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
+				className="relative h-screen flex lg:items-center justify-center bg-cover bg-center bg-no-repeat"
 				style={{
 					backgroundImage: `url(${packagesHeroBg})`,
 				}}
 			>
 				{/* Hero Content */}
 				<div className="relative z-10 container px-0 mx-auto ">
-					<div className="max-w-4xl">
+					<div className="p-4 lg:p-0 max-w-4xl">
 						<h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white text-left leading-tight">
 							<div>VALIDATOR</div>
 							<div>PACKAGES</div>
