@@ -31,6 +31,7 @@ import AdminPackages from "./pages/admin/Packages";
 import AdminTransactions from "./pages/admin/Transactions";
 import AdminWithdrawals from "./pages/admin/Withdrawals";
 import AdminLogs from "./pages/admin/Logs";
+import AdminProfile from "./pages/admin/Profile";
 
 // Layouts
 import Layout from "./components/Layout";
@@ -95,6 +96,7 @@ function App() {
           <Route path="transactions" element={<AdminTransactions />} />
           <Route path="withdrawals" element={<AdminWithdrawals />} />
           <Route path="logs" element={<AdminLogs />} />
+          <Route path="profile" element={<AdminProfile />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

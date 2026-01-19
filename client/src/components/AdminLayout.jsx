@@ -19,6 +19,7 @@ export default function AdminLayout() {
     { path: "/admin/transactions", label: "Transactions", icon: "💳" },
     { path: "/admin/withdrawals", label: "Withdrawals", icon: "💰" },
     { path: "/admin/logs", label: "Logs", icon: "📝" },
+    { path: "/admin/profile", label: "Profile", icon: "👤" },
   ];
 
   const isActive = (path) => {
@@ -42,9 +43,8 @@ export default function AdminLayout() {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center px-6 py-3 hover:bg-gray-700 transition-colors ${
-                isActive(item.path) ? "bg-gray-700 border-r-4 border-blue-500" : ""
-              }`}
+              className={`flex items-center px-6 py-3 hover:bg-gray-700 transition-colors ${isActive(item.path) ? "bg-gray-700 border-r-4 border-blue-500" : ""
+                }`}
             >
               <span className="mr-3 text-xl">{item.icon}</span>
               <span>{item.label}</span>
