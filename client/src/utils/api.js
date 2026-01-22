@@ -17,15 +17,11 @@ api.interceptors.request.use(
     const isInAdminPanel = window.location.pathname.includes("/admin");
 
     // Check if it's an admin route
-    const isAdminRoute = 
-      config.url?.includes("/admin/") || 
+    const isAdminRoute =
+      config.url?.includes("/admin/") ||
       config.url?.includes("admin/") ||
-      // If in admin panel and making requests to protected routes, use admin token
-      (isInAdminPanel && 
-       (config.url?.includes("/packages") || 
-        config.url?.includes("/withdrawals") ||
-        config.url?.includes("/orders") ||
-        config.url?.includes("/users")));
+      // If in admin panel, treat all API calls as admin routes
+      isInAdminPanel;
 
     if (isAdminRoute && adminToken) {
       config.headers.Authorization = `Bearer ${adminToken}`;
@@ -47,7 +43,7 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // Don't handle 401 for public/auth endpoints (login, register, forgot-password, etc.)
-    const isPublicEndpoint = 
+    const isPublicEndpoint =
       originalRequest.url?.includes("/auth/login") ||
       originalRequest.url?.includes("/auth/register") ||
       originalRequest.url?.includes("/auth/forgot-password") ||
@@ -58,8 +54,8 @@ api.interceptors.response.use(
       originalRequest.url?.includes("/admin/auth/login");
 
     // Don't redirect if already on login page or if it's a public endpoint
-    const isOnLoginPage = 
-      window.location.pathname === "/login" || 
+    const isOnLoginPage =
+      window.location.pathname === "/login" ||
       window.location.pathname === "/admin/login";
 
     // Avoid infinite loop and don't handle public endpoints
@@ -67,15 +63,11 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       const isInAdminPanel = window.location.pathname.includes("/admin");
-      const isAdminRoute = 
-        originalRequest.url?.includes("/admin/") || 
+      const isAdminRoute =
+        originalRequest.url?.includes("/admin/") ||
         originalRequest.url?.includes("admin/") ||
-        // If in admin panel and making requests to protected routes, treat as admin route
-        (isInAdminPanel && 
-         (originalRequest.url?.includes("/packages") || 
-          originalRequest.url?.includes("/withdrawals") ||
-          originalRequest.url?.includes("/orders") ||
-          originalRequest.url?.includes("/users")));
+        // If in admin panel, treat all API calls as admin routes
+        isInAdminPanel;
 
       if (isAdminRoute) {
         // Admin token refresh
@@ -139,4 +131,3 @@ api.interceptors.response.use(
 );
 
 export default api;
-

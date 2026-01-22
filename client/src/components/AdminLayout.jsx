@@ -1,5 +1,7 @@
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
+import { MENU_ITEMS } from "../config/permissions";
+import { getVisibleMenuItems } from "../utils/permissions";
 import logo from "../assets/logo.png";
 
 export default function AdminLayout() {
@@ -12,15 +14,8 @@ export default function AdminLayout() {
     navigate("/admin/login");
   };
 
-  const menuItems = [
-    { path: "/admin", label: "Dashboard", icon: "📊" },
-    { path: "/admin/users", label: "Users", icon: "👥" },
-    { path: "/admin/packages", label: "Packages", icon: "📦" },
-    { path: "/admin/transactions", label: "Transactions", icon: "💳" },
-    { path: "/admin/withdrawals", label: "Withdrawals", icon: "💰" },
-    { path: "/admin/logs", label: "Logs", icon: "📝" },
-    { path: "/admin/profile", label: "Profile", icon: "👤" },
-  ];
+  // Get visible menu items based on admin permissions
+  const visibleMenuItems = admin ? getVisibleMenuItems(admin, MENU_ITEMS) : [];
 
   const isActive = (path) => {
     if (path === "/admin") {
@@ -39,7 +34,7 @@ export default function AdminLayout() {
         </div>
 
         <nav className="mt-6">
-          {menuItems.map((item) => (
+          {visibleMenuItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
@@ -73,7 +68,7 @@ export default function AdminLayout() {
         <header className="bg-white shadow-sm sticky top-0 z-10">
           <div className="px-6 py-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-800">
-              {menuItems.find((item) => isActive(item.path))?.label || "Admin"}
+              {visibleMenuItems.find((item) => isActive(item.path))?.label || "Admin"}
             </h2>
             <div className="flex items-center gap-4">
               <Link to="/" className="text-sm text-gray-600 hover:text-gray-800">

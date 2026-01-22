@@ -23,7 +23,7 @@ router.put("/users/:id/assign-package", checkPermission("users.update"), adminCo
 router.put("/users/:id", checkPermission("users.update"), adminController.updateUserInfo);
 
 // Statistics
-router.get("/stats", checkPermission("stats.view"), adminController.getStats);
+router.get("/stats", adminController.getStats);
 
 // Transactions (Payments)
 router.get("/transactions", checkPermission("transactions.view"), adminController.getTransactions);

@@ -13,7 +13,7 @@ const adminLogSchema = new mongoose.Schema(
     },
     entityType: {
       type: String,
-      enum: ["user", "package", "transaction", "withdrawal", "commission", "other"],
+      enum: ["admin", "user", "package", "transaction", "withdrawal", "commission", "other"],
     },
     entityId: {
       type: mongoose.Schema.Types.ObjectId,

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
+import { useAuthStore } from "../../store/authStore";
+import PermissionGuard from "../../components/PermissionGuard";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,7 @@ import WithdrawalPaymentModal from "../../components/WithdrawalPaymentModal";
 import Loading from '../../components/Loading';
 
 export default function AdminWithdrawals() {
+  const { admin } = useAuthStore();
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
@@ -50,7 +53,7 @@ export default function AdminWithdrawals() {
 
   const handleApprove = async (withdrawalId) => {
     if (!confirm("Approve this withdrawal request? You will need to pay the user via Metamask.")) return;
-    
+
     // Find the withdrawal from current list
     const withdrawalToProcess = withdrawals.find(w => w._id === withdrawalId);
     if (withdrawalToProcess) {
@@ -207,10 +210,10 @@ export default function AdminWithdrawals() {
                           withdrawal.status === "completed"
                             ? "default"
                             : withdrawal.status === "approved"
-                            ? "secondary"
-                            : withdrawal.status === "rejected"
-                            ? "destructive"
-                            : "outline"
+                              ? "secondary"
+                              : withdrawal.status === "rejected"
+                                ? "destructive"
+                                : "outline"
                         }
                       >
                         {withdrawal.status}
@@ -260,20 +263,24 @@ export default function AdminWithdrawals() {
                     <TableCell>
                       {withdrawal.status === "pending" && (
                         <div className="flex gap-2">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleApprove(withdrawal._id)}
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleReject(withdrawal._id)}
-                          >
-                            Reject
-                          </Button>
+                          <PermissionGuard admin={admin} permission="withdrawals.approve">
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleApprove(withdrawal._id)}
+                            >
+                              Approve
+                            </Button>
+                          </PermissionGuard>
+                          <PermissionGuard admin={admin} permission="withdrawals.reject">
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleReject(withdrawal._id)}
+                            >
+                              Reject
+                            </Button>
+                          </PermissionGuard>
                         </div>
                       )}
                       {withdrawal.status === "approved" && (

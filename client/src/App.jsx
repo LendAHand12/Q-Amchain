@@ -32,6 +32,8 @@ import AdminTransactions from "./pages/admin/Transactions";
 import AdminWithdrawals from "./pages/admin/Withdrawals";
 import AdminLogs from "./pages/admin/Logs";
 import AdminProfile from "./pages/admin/Profile";
+import Admins from "./pages/admin/Admins";
+import Roles from "./pages/admin/Roles";
 
 // Layouts
 import Layout from "./components/Layout";
@@ -96,6 +98,8 @@ function App() {
           <Route path="transactions" element={<AdminTransactions />} />
           <Route path="withdrawals" element={<AdminWithdrawals />} />
           <Route path="logs" element={<AdminLogs />} />
+          <Route path="admins" element={<Admins />} />
+          <Route path="roles" element={<Roles />} />
           <Route path="profile" element={<AdminProfile />} />
         </Route>
 

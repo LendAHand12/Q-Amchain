@@ -26,6 +26,11 @@ const adminSchema = new mongoose.Schema(
       ref: "Role",
       required: true,
     },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Admin",
+      default: null,
+    },
     isEmailVerified: {
       type: Boolean,
       default: true,

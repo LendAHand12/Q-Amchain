@@ -22,8 +22,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatDate, formatDateTime } from "../../utils/dateFormat";
 import { formatAddress } from "../../utils/formatAddress";
 import { ArrowLeft, Edit, Save, X, Trash2, Upload, FileImage, ExternalLink, ZoomIn } from "lucide-react";
+import { useAuthStore } from "../../store/authStore";
+import PermissionGuard from "../../components/PermissionGuard";
 
 export default function UserDetails() {
+  const { admin } = useAuthStore();
   const { id } = useParams();
   const navigate = useNavigate();
   const [userDetails, setUserDetails] = useState(null);
@@ -286,18 +289,22 @@ export default function UserDetails() {
                 <div className="flex gap-2">
                   {!isEditing ? (
                     <>
-                      <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit User Info
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => setShowTransferDialog(true)}
-                        className="border-blue-500 text-blue-600 hover:bg-blue-50"
-                      >
-                        Transfer User
-                      </Button>
+                      <PermissionGuard admin={admin} permission="users.update">
+                        <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit User Info
+                        </Button>
+                      </PermissionGuard>
+                      <PermissionGuard admin={admin} permission="users.update">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowTransferDialog(true)}
+                          className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                        >
+                          Transfer User
+                        </Button>
+                      </PermissionGuard>
                     </>
                   ) : (
                     <>
@@ -311,15 +318,17 @@ export default function UserDetails() {
                       </Button>
                     </>
                   )}
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    onClick={() => setShowDeleteDialog(true)}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete User
-                  </Button>
+                  <PermissionGuard admin={admin} permission="users.delete">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setShowDeleteDialog(true)}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete User
+                    </Button>
+                  </PermissionGuard>
                 </div>
               </div>
             </CardHeader>
@@ -527,15 +536,17 @@ export default function UserDetails() {
                       ) : (
                         <>
                           <p className="text-muted-foreground">No package yet</p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShowAssignPackageDialog(true)}
-                            className="ml-2"
-                            type="button"
-                          >
-                            Assign Package
-                          </Button>
+                          <PermissionGuard admin={admin} permission="users.update">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setShowAssignPackageDialog(true)}
+                              className="ml-2"
+                              type="button"
+                            >
+                              Assign Package
+                            </Button>
+                          </PermissionGuard>
                         </>
                       )}
                     </div>
@@ -559,7 +570,7 @@ export default function UserDetails() {
                   {/* Certificate Section */}
                   <div className="col-span-2 mt-4 pt-4 border-t">
                     <Label className="text-muted-foreground mb-4 block text-lg font-semibold">Certificates</Label>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       {/* Front Side */}
                       <div className="space-y-3">
@@ -738,10 +749,10 @@ export default function UserDetails() {
                               tx.type === "payment"
                                 ? "default"
                                 : tx.type === "commission"
-                                ? "secondary"
-                                : tx.type === "withdrawal"
-                                ? "outline"
-                                : "outline"
+                                  ? "secondary"
+                                  : tx.type === "withdrawal"
+                                    ? "outline"
+                                    : "outline"
                             }
                           >
                             {tx.type}
@@ -756,8 +767,8 @@ export default function UserDetails() {
                               tx.status === "completed"
                                 ? "default"
                                 : tx.status === "pending"
-                                ? "outline"
-                                : "destructive"
+                                  ? "outline"
+                                  : "destructive"
                             }
                           >
                             {tx.status}
@@ -1048,7 +1059,7 @@ export default function UserDetails() {
           <DialogHeader>
             <DialogTitle>Delete User</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete user <strong>{userDetails?.user?.username}</strong>? 
+              Are you sure you want to delete user <strong>{userDetails?.user?.username}</strong>?
               This action will soft delete the user and free up their unique information (email, username, refCode, phone number, wallet address, identity number) for reuse by other users.
               <br /><br />
               <span className="text-destructive font-semibold">This action cannot be undone.</span>
@@ -1166,7 +1177,7 @@ export default function UserDetails() {
             {/* Warning Message */}
             <div className="p-3 bg-amber-50 rounded-md border border-amber-200">
               <p className="text-xs text-amber-800">
-                <strong>Warning:</strong> This action will change the referral tree structure. 
+                <strong>Warning:</strong> This action will change the referral tree structure.
                 Future commissions will use the new parent structure. Existing commissions are not affected.
               </p>
             </div>

@@ -20,6 +20,7 @@ import commissionRoutes from "./routes/commission.routes.js";
 import withdrawalRoutes from "./routes/withdrawal.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import roleRoutes from "./routes/role.routes.js";
+import adminManagementRoutes from "./routes/adminManagement.routes.js";
 import blogRoutes from "./routes/blog.routes.js";
 
 const app = express();
@@ -59,6 +60,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/commissions", commissionRoutes);
 app.use("/api/withdrawals", withdrawalRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin/management", adminManagementRoutes);
 app.use("/api/roles", roleRoutes);
 app.use("/api/blogs", blogRoutes);
 
