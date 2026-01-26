@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+import { Eye, EyeOff } from "lucide-react";
 import api from "../../utils/api";
 import { useAuthStore } from "../../store/authStore";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ export default function AdminLogin() {
   const [requires2FA, setRequires2FA] = useState(false);
   const [tempToken, setTempToken] = useState(null);
   const [twoFAToken, setTwoFAToken] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -111,12 +113,25 @@ export default function AdminLogin() {
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                {...register("password", { required: "Password is required" })}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  {...register("password", { required: "Password is required" })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
