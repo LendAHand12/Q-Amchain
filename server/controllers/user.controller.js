@@ -128,6 +128,13 @@ export const getDashboard = async (req, res) => {
     const f1Earnings = f1Commissions[0]?.total || 0;
     const f2Earnings = f2Commissions[0]?.total || 0;
 
+    // Calculate total invested (sum of completed payment transactions)
+    const totalInvestedResult = await Transaction.aggregate([
+      { $match: { userId: req.user._id, type: "payment", status: "completed" } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]);
+    const totalInvested = totalInvestedResult[0]?.total || 0;
+
     // Get recent transactions
     // Use packageInfo if available (stored at purchase time), otherwise populate from Package
     const recentTransactions = await Transaction.find({ userId: req.user._id })
@@ -196,6 +203,7 @@ export const getDashboard = async (req, res) => {
         walletBalance: user.walletBalance,
         totalEarnings: user.totalEarnings,
         directReferrals: actualDirectReferrals, // Use actual count instead of stored value
+        totalInvested,
         packagesPurchased: user.packagesPurchased,
         refCode: user.refCode,
         f1Earnings,

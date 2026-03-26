@@ -131,7 +131,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl sm:text-3xl font-bold">
-              {stats?.totalEarnings?.toFixed(2) || "0.00"}
+              {stats?.totalInvested?.toFixed(2) || "0.00"}
             </div>
             <p className="text-xs text-gray-400 mt-1">USDT</p>
           </CardContent>
