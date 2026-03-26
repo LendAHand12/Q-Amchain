@@ -128,9 +128,15 @@ export const getDashboard = async (req, res) => {
     const f1Earnings = f1Commissions[0]?.total || 0;
     const f2Earnings = f2Commissions[0]?.total || 0;
 
-    // Calculate total invested (sum of completed payment transactions)
     const totalInvestedResult = await Transaction.aggregate([
-      { $match: { userId: req.user._id, type: "payment", status: "completed" } },
+      { 
+        $match: { 
+          userId: req.user._id, 
+          type: "payment", 
+          status: "completed",
+          transactionHash: { $ne: "" } // Exclude assigned packages
+        } 
+      },
       { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
     const totalInvested = totalInvestedResult[0]?.total || 0;
