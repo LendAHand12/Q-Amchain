@@ -137,6 +137,14 @@ const userSchema = new mongoose.Schema(
 userSchema.index({ parentId: 1 });
 userSchema.index({ isDeleted: 1 });
 
+// Conditional Unique Indexes (only for active users)
+userSchema.index({ email: 1 }, { unique: true, partialFilterExpression: { isDeleted: false } });
+userSchema.index({ username: 1 }, { unique: true, partialFilterExpression: { isDeleted: false } });
+userSchema.index({ refCode: 1 }, { unique: true, partialFilterExpression: { isDeleted: false } });
+userSchema.index({ walletAddress: 1 }, { unique: true, partialFilterExpression: { isDeleted: false } });
+userSchema.index({ phoneNumber: 1 }, { unique: true, partialFilterExpression: { isDeleted: false } });
+userSchema.index({ identityNumber: 1 }, { unique: true, partialFilterExpression: { isDeleted: false } });
+
 // Hash password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();

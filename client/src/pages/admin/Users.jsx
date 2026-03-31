@@ -5,7 +5,17 @@ import toast from "react-hot-toast";
 import Loading from '../../components/Loading';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -25,6 +35,9 @@ export default function AdminUsers() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState(null);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     setCurrentPage(1); // Reset to page 1 when search changes
@@ -51,6 +64,40 @@ export default function AdminUsers() {
     navigate(`/admin/users/${userId}`);
   };
 
+  const handleExportExcel = async () => {
+    try {
+      setIsExporting(true);
+      let url = "/admin/export/users";
+      const params = new URLSearchParams();
+      if (startDate) params.append("startDate", startDate);
+      if (endDate) params.append("endDate", endDate);
+      
+      const queryString = params.toString();
+      if (queryString) url += `?${queryString}`;
+
+      const response = await api.get(url, {
+        responseType: "blob",
+      });
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", `Users_Export_${new Date().toISOString().split("T")[0]}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("Đã xuất dữ liệu người dùng thành công");
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Lỗi khi xuất dữ liệu người dùng");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (loading) {
     return <Loading fullScreen text="Fetching users..." />;
   }
@@ -62,13 +109,75 @@ export default function AdminUsers() {
           <h1 className="text-3xl font-bold mb-2">User Management</h1>
           <p className="text-muted-foreground">Manage all registered users</p>
         </div>
-        <Input
-          type="text"
-          placeholder="Search users..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-64"
-        />
+        <div className="flex flex-col sm:flex-row gap-4 items-end">
+          <div className="flex gap-2">
+            <Input
+              type="text"
+              placeholder="Tìm kiếm..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-48 h-9"
+            />
+            
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-2 h-9"
+                >
+                  <Download className="w-4 h-4" />
+                  Xuất Excel
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Xuất dữ liệu người dùng</DialogTitle>
+                  <DialogDescription>
+                    Chọn khoảng thời gian bạn muốn xuất dữ liệu ra file Excel.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <label htmlFor="startDate" className="text-sm font-medium">Từ ngày</label>
+                    <Input
+                      id="startDate"
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <label htmlFor="endDate" className="text-sm font-medium">Đến ngày</label>
+                    <Input
+                      id="endDate"
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button 
+                    variant="default" 
+                    onClick={handleExportExcel}
+                    disabled={isExporting}
+                    className="w-full flex items-center justify-center gap-2"
+                  >
+                    {isExporting ? (
+                      <>Đang xuất...</>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4" />
+                        Tải về file Excel
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
       </div>
 
       <Card>

@@ -22,6 +22,7 @@ import adminRoutes from "./routes/admin.routes.js";
 import roleRoutes from "./routes/role.routes.js";
 import adminManagementRoutes from "./routes/adminManagement.routes.js";
 import blogRoutes from "./routes/blog.routes.js";
+import adminExportRoutes from "./routes/adminExport.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -45,7 +46,6 @@ mongoose
   .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/q-amchain")
   .then(() => {
     console.log("✅ MongoDB connected");
-    // Create admin user if not exists
   })
   .catch((error) => {
     console.error("❌ MongoDB connection error:", error);
@@ -62,6 +62,7 @@ app.use("/api/withdrawals", withdrawalRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin/management", adminManagementRoutes);
 app.use("/api/roles", roleRoutes);
+app.use("/api/admin/export", adminExportRoutes);
 app.use("/api/blogs", blogRoutes);
 
 // Health check

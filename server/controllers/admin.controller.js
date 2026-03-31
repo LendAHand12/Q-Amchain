@@ -339,57 +339,58 @@ export const deleteUser = async (req, res) => {
     // Update children: move them up to become children of the deleted user's parent
     if (children.length > 0) {
       for (const child of children) {
-        // Update parentId: set to grandParentId (or null if deleted user has no parent)
-        child.parentId = grandParentId || null;
+        // Calculate new parent and ancestors
+        const newParentId = grandParentId || null;
+        let newAncestors = [];
         
-        // Update ancestors: remove deleted user from ancestors array
-        // ancestors format: [parentId, ...parentAncestors]
-        // After deletion: [grandParentId, ...grandParentAncestors] (if grandParent exists)
         if (grandParentId && grandParent) {
-          child.ancestors = [grandParentId, ...(grandParent.ancestors || [])];
-        } else {
-          // If deleted user has no parent, children become root (no ancestors)
-          child.ancestors = [];
+          newAncestors = [grandParentId, ...(grandParent.ancestors || [])];
         }
-        
-        await child.save();
+
+        // Use findByIdAndUpdate to bypass validation for children who might have incomplete legacy data
+        await User.findByIdAndUpdate(child._id, {
+          parentId: newParentId,
+          ancestors: newAncestors
+        });
       }
 
       // Update directReferrals count of grandparent (if exists)
-      // Before: grandParent has 1 child (the deleted user)
-      // After: grandParent has children.length children (moved up from deleted user)
-      // Net change: children.length - 1
       if (grandParentId && grandParent) {
-        grandParent.directReferrals = Math.max(0, (grandParent.directReferrals || 0) - 1 + children.length);
-        await grandParent.save();
+        const newReferrals = Math.max(0, (grandParent.directReferrals || 0) - 1 + children.length);
+        await User.findByIdAndUpdate(grandParentId, { directReferrals: newReferrals });
       }
     } else {
       // No children, just decrease parent's directReferrals count
       if (grandParentId && grandParent) {
-        grandParent.directReferrals = Math.max(0, (grandParent.directReferrals || 0) - 1);
-        await grandParent.save();
+        const newReferrals = Math.max(0, (grandParent.directReferrals || 0) - 1);
+        await User.findByIdAndUpdate(grandParentId, { directReferrals: newReferrals });
       }
     }
 
-    // Soft delete: set isDeleted and deletedAt only
-    // Keep all unique fields unchanged - they will be available for reuse
-    // because duplicate checks exclude deleted users
-    user.isDeleted = true;
-    user.deletedAt = new Date();
-    // Reset directReferrals to 0 since user is deleted
-    user.directReferrals = 0;
-    await user.save();
+    // Soft delete: set isDeleted and deletedAt
+    // As per user request, we no longer modify unique fields (like email) on deletion.
+    // Instead, conditional (partial) indexes in the database handle uniqueness for active users only.
+    const updateData = {
+      isDeleted: true,
+      deletedAt: new Date(),
+      directReferrals: 0
+    };
+
+    await User.findByIdAndUpdate(user._id, updateData);
+
+    // Refresh user object for logging
+    const deletedUser = await User.findById(user._id);
 
     // Log admin action
     await AdminLog.create({
       adminId: req.admin._id,
       action: "delete_user",
       entityType: "user",
-      entityId: user._id,
+      entityId: deletedUser._id,
       details: { 
-        userId: user._id, 
-        username: user.username,
-        email: user.email,
+        userId: deletedUser._id, 
+        username: deletedUser.username,
+        email: deletedUser.email,
         childrenMovedUp: children.length,
         newParentId: grandParentId || null,
         note: `User soft deleted. ${children.length} children moved up to parent (${grandParentId ? 'has parent' : 'no parent'}). Unique fields available for reuse.`
