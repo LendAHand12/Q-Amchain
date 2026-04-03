@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { getAdmins, deleteAdmin, resetAdminPassword } from "../../api/adminApi";
 import { getRoles } from "../../api/roleApi";
 import { useAuthStore } from "../../store/authStore";
@@ -8,26 +9,49 @@ import AdminFormModal from "../../components/AdminFormModal";
 
 const Admins = () => {
     const { admin } = useAuthStore();
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // URL-driven state (source of truth)
+    const searchTerm = searchParams.get("search") || "";
+    const selectedRole = searchParams.get("role") || "";
+    const statusFilter = searchParams.get("status") || "";
+    const currentPage = parseInt(searchParams.get("page")) || 1;
+
+    // Local state for UI
     const [admins, setAdmins] = useState([]);
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [searchTermDraft, setSearchTermDraft] = useState(searchTerm);
 
     // Pagination
-    const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [total, setTotal] = useState(0);
-
-    // Filters
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedRole, setSelectedRole] = useState("");
-    const [statusFilter, setStatusFilter] = useState("");
 
     // Modal states
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedAdmin, setSelectedAdmin] = useState(null);
+
+    // Debounce search input
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchTermDraft !== searchTerm) {
+                const params = new URLSearchParams(searchParams);
+                if (searchTermDraft) params.set("search", searchTermDraft);
+                else params.delete("search");
+                params.set("page", "1");
+                setSearchParams(params);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTermDraft, searchTerm, searchParams, setSearchParams]);
+
+    // Sync draft when URL changes
+    useEffect(() => {
+        setSearchTermDraft(searchTerm);
+    }, [searchTerm]);
 
     useEffect(() => {
         fetchRoles();
@@ -160,11 +184,8 @@ const Admins = () => {
                         <input
                             type="text"
                             placeholder="Search by email or username..."
-                            value={searchTerm}
-                            onChange={(e) => {
-                                setSearchTerm(e.target.value);
-                                setCurrentPage(1);
-                            }}
+                            value={searchTermDraft}
+                            onChange={(e) => setSearchTermDraft(e.target.value)}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                     </div>
@@ -174,8 +195,11 @@ const Admins = () => {
                         <select
                             value={selectedRole}
                             onChange={(e) => {
-                                setSelectedRole(e.target.value);
-                                setCurrentPage(1);
+                                const params = new URLSearchParams(searchParams);
+                                if (e.target.value) params.set("role", e.target.value);
+                                else params.delete("role");
+                                params.set("page", "1");
+                                setSearchParams(params);
                             }}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
@@ -193,8 +217,11 @@ const Admins = () => {
                         <select
                             value={statusFilter}
                             onChange={(e) => {
-                                setStatusFilter(e.target.value);
-                                setCurrentPage(1);
+                                const params = new URLSearchParams(searchParams);
+                                if (e.target.value) params.set("status", e.target.value);
+                                else params.delete("status");
+                                params.set("page", "1");
+                                setSearchParams(params);
                             }}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
@@ -331,7 +358,11 @@ const Admins = () => {
                                 </div>
                                 <div className="flex space-x-2">
                                     <button
-                                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                        onClick={() => {
+                                            const params = new URLSearchParams(searchParams);
+                                            params.set("page", Math.max(1, currentPage - 1));
+                                            setSearchParams(params);
+                                        }}
                                         disabled={currentPage === 1}
                                         className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                                     >
@@ -341,7 +372,11 @@ const Admins = () => {
                                         Page {currentPage} of {totalPages}
                                     </span>
                                     <button
-                                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                        onClick={() => {
+                                            const params = new URLSearchParams(searchParams);
+                                            params.set("page", Math.min(totalPages, currentPage + 1));
+                                            setSearchParams(params);
+                                        }}
                                         disabled={currentPage === totalPages}
                                         className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                                     >

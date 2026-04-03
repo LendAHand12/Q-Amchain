@@ -1,3 +1,4 @@
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
 import { Input } from "@/components/ui/input";
@@ -36,18 +37,18 @@ import Pagination from "../../components/Pagination";
 import Loading from "@/components/Loading";
 
 export default function AdminTransactions() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // URL-driven state (source of truth)
+  const statusFilter = searchParams.get("status") || "all";
+  const currentPage = parseInt(searchParams.get("page")) || 1;
+
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [isExporting, setIsExporting] = useState(false);
-
-  useEffect(() => {
-    setCurrentPage(1); // Reset to page 1 when filter changes
-  }, [statusFilter]);
 
   useEffect(() => {
     fetchTransactions();
@@ -55,6 +56,7 @@ export default function AdminTransactions() {
 
   const fetchTransactions = async () => {
     try {
+      setLoading(true);
       const url =
         statusFilter && statusFilter !== "all"
           ? `/admin/transactions?status=${statusFilter}&page=${currentPage}&limit=20`
@@ -116,7 +118,16 @@ export default function AdminTransactions() {
         </div>
         <div className="flex flex-col sm:flex-row gap-4 items-end">
           <div className="flex gap-2">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select 
+              value={statusFilter} 
+              onValueChange={(val) => {
+                const params = new URLSearchParams(searchParams);
+                if (val && val !== "all") params.set("status", val);
+                else params.delete("status");
+                params.set("page", "1");
+                setSearchParams(params);
+              }}
+            >
               <SelectTrigger className="w-[150px] h-9">
                 <SelectValue placeholder="Trạng thái" />
               </SelectTrigger>
@@ -262,7 +273,9 @@ export default function AdminTransactions() {
               currentPage={pagination.page}
               totalPages={pagination.pages}
               onPageChange={(page) => {
-                setCurrentPage(page);
+                const params = new URLSearchParams(searchParams);
+                params.set("page", page);
+                setSearchParams(params);
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
             />

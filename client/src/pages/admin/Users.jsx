@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../utils/api";
 import toast from "react-hot-toast";
 import Loading from '../../components/Loading';
@@ -30,25 +30,48 @@ import { formatAddress } from "../../utils/formatAddress";
 
 export default function AdminUsers() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // URL-driven state (source of truth)
+  const search = searchParams.get("search") || "";
+  const currentPage = parseInt(searchParams.get("page")) || 1;
+
+  // Local states for UI and transient input
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState(search);
   const [pagination, setPagination] = useState(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [isExporting, setIsExporting] = useState(false);
 
+  // Debounce search input to avoid history spam
   useEffect(() => {
-    setCurrentPage(1); // Reset to page 1 when search changes
+    const timer = setTimeout(() => {
+      if (searchTerm !== search) {
+        const params = new URLSearchParams(searchParams);
+        if (searchTerm) params.set("search", searchTerm);
+        else params.delete("search");
+        params.set("page", "1"); // Reset specifically for search changes
+        setSearchParams(params);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm, search, searchParams, setSearchParams]);
+
+  // Sync searchTerm when URL changes externally (e.g., via back button)
+  useEffect(() => {
+    setSearchTerm(search);
   }, [search]);
 
+  // Fetch data only search or page in URL changes
   useEffect(() => {
     fetchUsers();
   }, [search, currentPage]);
 
   const fetchUsers = async () => {
     try {
+      setLoading(true);
       const response = await api.get(`/admin/users?search=${search}&page=${currentPage}&limit=20`);
       setUsers(response.data.data.users || []);
       setPagination(response.data.data.pagination);
@@ -114,8 +137,8 @@ export default function AdminUsers() {
             <Input
               type="text"
               placeholder="Tìm kiếm..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-48 h-9"
             />
             
@@ -144,7 +167,10 @@ export default function AdminUsers() {
                       id="startDate"
                       type="date"
                       value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
+                      onChange={(e) => {
+                        setStartDate(e.target.value);
+                        setCurrentPage(1);
+                      }}
                     />
                   </div>
                   <div className="grid gap-2">
@@ -274,7 +300,9 @@ export default function AdminUsers() {
               currentPage={pagination.page}
               totalPages={pagination.pages}
               onPageChange={(page) => {
-                setCurrentPage(page);
+                const params = new URLSearchParams(searchParams);
+                params.set("page", page);
+                setSearchParams(params);
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
             />

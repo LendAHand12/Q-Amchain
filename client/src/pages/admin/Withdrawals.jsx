@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../../utils/api";
 import { useAuthStore } from "../../store/authStore";
 import PermissionGuard from "../../components/PermissionGuard";
@@ -18,6 +19,9 @@ import WithdrawalPaymentModal from "../../components/WithdrawalPaymentModal";
 import Loading from '../../components/Loading';
 
 export default function AdminWithdrawals() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = parseInt(searchParams.get("page")) || 1;
+
   const { admin } = useAuthStore();
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +29,6 @@ export default function AdminWithdrawals() {
   const [showCompleteForm, setShowCompleteForm] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [withdrawalToPay, setWithdrawalToPay] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState(null);
 
   const {
@@ -306,7 +309,9 @@ export default function AdminWithdrawals() {
               currentPage={pagination.page}
               totalPages={pagination.pages}
               onPageChange={(page) => {
-                setCurrentPage(page);
+                const params = new URLSearchParams(searchParams);
+                params.set("page", page);
+                setSearchParams(params);
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
             />

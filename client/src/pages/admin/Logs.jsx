@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../../utils/api";
 import toast from "react-hot-toast";
 import Loading from '../../components/Loading';
@@ -8,9 +9,11 @@ import { formatDateTime } from "../../utils/dateFormat";
 import Pagination from "../../components/Pagination";
 
 export default function AdminLogs() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = parseInt(searchParams.get("page")) || 1;
+
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState(null);
 
   useEffect(() => {
@@ -88,7 +91,9 @@ export default function AdminLogs() {
               currentPage={pagination.page}
               totalPages={pagination.pages}
               onPageChange={(page) => {
-                setCurrentPage(page);
+                const params = new URLSearchParams(searchParams);
+                params.set("page", page);
+                setSearchParams(params);
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
             />
