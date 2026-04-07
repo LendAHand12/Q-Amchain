@@ -108,7 +108,7 @@ export const register = async (req, res) => {
     const parent = await User.findOne({
       refCode: referrerCode.trim().toLowerCase(),
       isDeleted: { $ne: true },
-    }).select("assignedPackageId");
+    }).select("assignedPackageId referredPackageId");
     if (!parent) {
       return res.status(400).json({
         success: false,
@@ -152,7 +152,7 @@ export const register = async (req, res) => {
       ancestors,
       refCode: username,
       emailVerificationToken: verificationToken,
-      referredPackageId: packageId || null,
+      referredPackageId: packageId || parent.referredPackageId || null,
     });
 
     await user.save();

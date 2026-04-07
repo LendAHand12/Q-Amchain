@@ -7,19 +7,32 @@ export const getPackages = async (req, res) => {
     const isAdmin = !!req.admin;
     const userReferredPackageId = req.user?.referredPackageId;
     
+    const targetPackageId = (packageId && packageId !== "null" && packageId !== "undefined") 
+      ? packageId 
+      : userReferredPackageId;
+
     let query = {
       status: 'active',
       isDeleted: false
     };
 
-    if (packageId && packageId !== "null" && packageId !== "undefined") {
-      query._id = packageId;
-    } else if (userReferredPackageId && !isAdmin) {
-      // If user has a referred package, only show that one
-      query._id = userReferredPackageId;
+    // If there's a target package and we're not an admin, check if it's valid to restrict the list
+    if (targetPackageId && !isAdmin) {
+      const targetPackage = await Package.findOne({
+        _id: targetPackageId,
+        status: 'active',
+        isDeleted: false
+      });
+
+      if (targetPackage) {
+        // Only return this specific package if it's valid
+        query._id = targetPackageId;
+      } else {
+        // Fallback: If the referred package is inactive/deleted, show all visible packages
+        query.isHidden = { $ne: true };
+      }
     } else if (!isAdmin) {
-      // Only hide packages for regular users, not admins
-      // Use $ne: true to include packages where isHidden field might be missing (default false)
+      // General case for non-admin users with no referred package: only show visible ones
       query.isHidden = { $ne: true };
     }
 
