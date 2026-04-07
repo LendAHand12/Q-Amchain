@@ -152,6 +152,15 @@ export default function Packages() {
                       <option value="inactive">Inactive</option>
                     </select>
                   </div>
+                  <div className="space-y-2 flex items-center gap-2 pt-6">
+                    <input
+                      id="isHidden"
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      {...register("isHidden")}
+                    />
+                    <Label htmlFor="isHidden" className="cursor-pointer">Hide this package (only visible via referral link)</Label>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -214,8 +223,13 @@ export default function Packages() {
           <Card key={pkg._id}>
             <CardHeader>
               <CardTitle>{pkg.name}</CardTitle>
-              <div className="text-2xl font-bold text-primary">
-                {pkg.price} {pkg.currency}
+              <div className="flex items-center justify-between">
+                <div className="text-2xl font-bold text-primary">
+                  {pkg.price} {pkg.currency}
+                </div>
+                {pkg.isHidden && (
+                  <Badge variant="destructive">Hidden</Badge>
+                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">

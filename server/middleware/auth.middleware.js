@@ -67,3 +67,29 @@ export const require2FA = (req, res, next) => {
   }
   next();
 };
+
+export const authenticateOptional = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return next();
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    if (decoded.type === "admin") {
+      const admin = await Admin.findById(decoded.adminId || decoded.userId).select("-password").populate("roleId");
+      if (admin && admin.isActive) {
+        req.admin = admin;
+      }
+    } else {
+      const user = await User.findById(decoded.userId).select("-password");
+      if (user) {
+        req.user = user;
+      }
+    }
+  } catch (error) {
+    // Silently fail authentication for optional
+  }
+  next();
+};

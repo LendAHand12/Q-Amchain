@@ -137,7 +137,8 @@ export const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
       .select("-password -twoFactorSecret")
-      .populate("parentId", "username email refCode");
+      .populate("parentId", "username email refCode")
+      .populate("referredPackageId", "name");
 
     if (!user) {
       return res.status(404).json({
@@ -466,7 +467,7 @@ export const updateUserWallet = async (req, res) => {
 
 export const updateUserInfo = async (req, res) => {
   try {
-    const { username, email, walletAddress, fullName, phoneNumber, identityNumber } = req.body;
+    const { username, email, walletAddress, fullName, phoneNumber, identityNumber, referredPackageId } = req.body;
 
     const user = await User.findById(req.params.id);
 
@@ -592,6 +593,11 @@ export const updateUserInfo = async (req, res) => {
       }
       user.walletAddress = walletAddress.trim();
       changes.walletAddress = { old: oldValues.walletAddress, new: walletAddress.trim() };
+    }
+
+    if (referredPackageId !== undefined && String(referredPackageId) !== String(user.referredPackageId)) {
+      changes.referredPackageId = { old: user.referredPackageId, new: referredPackageId };
+      user.referredPackageId = referredPackageId || null;
     }
 
     // If no changes, return early

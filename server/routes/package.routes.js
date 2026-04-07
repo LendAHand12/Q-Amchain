@@ -1,12 +1,12 @@
 import express from "express";
 import * as packageController from "../controllers/package.controller.js";
-import { authenticateAdmin } from "../middleware/auth.middleware.js";
+import { authenticateAdmin, authenticateOptional } from "../middleware/auth.middleware.js";
 import { checkPermission } from "../middleware/permission.middleware.js";
 
 const router = express.Router();
 
 // Public routes
-router.get("/", packageController.getPackages);
+router.get("/", authenticateOptional, packageController.getPackages);
 router.get("/:id", packageController.getPackageById);
 
 // Admin routes

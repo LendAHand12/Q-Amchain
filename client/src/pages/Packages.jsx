@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import packagesHeroBg from "../assets/background/packages-1.png";
 import PackageCard from "../components/PackageCard";
 import api from "../utils/api";
@@ -9,14 +9,18 @@ export default function Packages() {
 	const [packages, setPackages] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const { isAuthenticated } = useAuthStore();
+	const [searchParams] = useSearchParams();
+	const packageIdFromUrl = searchParams.get("package");
 
 	useEffect(() => {
 		fetchPackages();
-	}, []);
+	}, [packageIdFromUrl]);
 
 	const fetchPackages = async () => {
 		try {
-			const response = await api.get("/packages");
+			const response = await api.get("/packages", {
+				params: { packageId: packageIdFromUrl }
+			});
 			setPackages(response.data.data);
 		} catch (error) {
 			console.error("Failed to load packages:", error);

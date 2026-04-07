@@ -21,7 +21,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatDate, formatDateTime } from "../../utils/dateFormat";
 import { formatAddress } from "../../utils/formatAddress";
-import { ArrowLeft, Edit, Save, X, Trash2, Upload, FileImage, ExternalLink, ZoomIn } from "lucide-react";
+import { ArrowLeft, Edit, Save, X, Trash2, Upload, FileImage, ExternalLink, ZoomIn, Link as LinkIcon, Copy, Check } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import PermissionGuard from "../../components/PermissionGuard";
 
@@ -47,6 +47,9 @@ export default function UserDetails() {
   const [deletingCertificate, setDeletingCertificate] = useState({ front: false, back: false });
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [selectedCertificateUrl, setSelectedCertificateUrl] = useState("");
+  const [showReferralModal, setShowReferralModal] = useState(false);
+  const [referralLinkPackageId, setReferralLinkPackageId] = useState("");
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const {
     register,
@@ -239,6 +242,32 @@ export default function UserDetails() {
     }
   };
 
+  const copyReferralLink = (link) => {
+    navigator.clipboard.writeText(link);
+    setCopiedLink(true);
+    toast.success("Link copied to clipboard!");
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const generatedReferralLink = userDetails 
+    ? `${window.location.origin}/register?ref=${userDetails.user.username}&package=${referralLinkPackageId}`
+    : "";
+
+
+  const handleClearReferredPackage = async () => {
+    if (!confirm("Are you sure you want to clear the referred package for this user? This will allow them to see all available packages.")) return;
+    
+    try {
+      await api.put(`/admin/users/${id}`, {
+        referredPackageId: null
+      });
+      toast.success("Referred package cleared successfully");
+      fetchUserDetails(id);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to clear referred package");
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center py-8">
@@ -289,6 +318,12 @@ export default function UserDetails() {
                 <div className="flex gap-2">
                   {!isEditing ? (
                     <>
+                      <PermissionGuard admin={admin} permission="users.update">
+                        <Button variant="outline" size="sm" onClick={() => setShowReferralModal(true)} className="border-green-500 text-green-600 hover:bg-green-50">
+                          <LinkIcon className="h-4 w-4 mr-2" />
+                          Gen Ref Link
+                        </Button>
+                      </PermissionGuard>
                       <PermissionGuard admin={admin} permission="users.update">
                         <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
                           <Edit className="h-4 w-4 mr-2" />
@@ -505,6 +540,29 @@ export default function UserDetails() {
                       )}
                     </div>
                   </div>
+                  {userDetails.user.referredPackageId && (
+                    <div>
+                      <Label className="text-muted-foreground">Referred for Package</Label>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-primary">
+                          {typeof userDetails.user.referredPackageId === 'object' 
+                            ? userDetails.user.referredPackageId.name 
+                            : "Package Link Used"}
+                        </p>
+                        <PermissionGuard admin={admin} permission="users.update">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6 text-destructive hover:bg-destructive/10" 
+                            onClick={handleClearReferredPackage}
+                            title="Clear referred package"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </PermissionGuard>
+                      </div>
+                    </div>
+                  )}
                   {userDetails.user.parentId && (
                     <div>
                       <Label className="text-muted-foreground">Referred By</Label>
@@ -1235,6 +1293,59 @@ export default function UserDetails() {
             >
               <Button>Download</Button>
             </a>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Referral Link Generator Modal */}
+      <Dialog open={showReferralModal} onOpenChange={setShowReferralModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Generate Referral Link</DialogTitle>
+            <DialogDescription>
+              Select a package to create a custom referral link for <strong>{userDetails.user.username}</strong>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="ref-package">Select Package</Label>
+              <Select onValueChange={setReferralLinkPackageId} value={referralLinkPackageId}>
+                <SelectTrigger id="ref-package">
+                  <SelectValue placeholder="Chose a package..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {packages.map((pkg) => (
+                    <SelectItem key={pkg._id} value={pkg._id}>
+                      {pkg.name} ({pkg.price} USDT) {pkg.isHidden && "(Hidden)"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {referralLinkPackageId && (
+              <div className="mt-4 p-3 bg-muted rounded-md space-y-2">
+                <Label className="text-xs text-muted-foreground">Generated Link</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    readOnly 
+                    value={generatedReferralLink}
+                    className="text-xs h-8 bg-background"
+                  />
+                  <Button 
+                    size="sm" 
+                    className="h-8 shrink-0" 
+                    onClick={() => copyReferralLink(generatedReferralLink)}
+                  >
+                    {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowReferralModal(false)}>
+              Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

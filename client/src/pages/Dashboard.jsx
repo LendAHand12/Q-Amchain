@@ -259,7 +259,7 @@ export default function Dashboard() {
                   variant="outline"
                   size="sm"
                   onClick={() => (window.location.href = "/dashboard/packages")}
-                  className="border-gray-600 text-white hover:bg-gray-700"
+                  className="border-gray-600 text-black hover:text-white hover:bg-gray-700"
                 >
                   Go to Packages
                 </Button>

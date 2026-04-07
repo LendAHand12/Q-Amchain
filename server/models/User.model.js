@@ -127,6 +127,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    referredPackageId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Package",
+      default: null,
+    },
   },
   {
     timestamps: true,

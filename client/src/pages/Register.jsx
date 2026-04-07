@@ -123,6 +123,7 @@ export default function Register() {
         phoneNumber: data.phoneNumber.trim(),
         identityNumber: data.identityNumber.trim(),
         referrerCode,
+        packageId: searchParams.get("package") || null,
       };
 
       await api.post("/auth/register", payload);

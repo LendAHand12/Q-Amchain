@@ -237,8 +237,8 @@ export default function MyPackages() {
   return (
     <div className="space-y-6 sm:space-y-8">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Packages</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
+        <h1 className="text-2xl sm:text-3xl text-white font-bold mb-2">Packages</h1>
+        <p className="text-sm sm:text-base text-gray-300">
           Choose a package to purchase (one package per user)
         </p>
       </div>

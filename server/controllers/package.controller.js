@@ -2,10 +2,28 @@ import Package from '../models/Package.model.js';
 
 export const getPackages = async (req, res) => {
   try {
-    const packages = await Package.find({
+    const { packageId } = req.query;
+    // Check if the requester is an admin (using the auth middleware which sets req.admin or req.user)
+    const isAdmin = !!req.admin;
+    const userReferredPackageId = req.user?.referredPackageId;
+    
+    let query = {
       status: 'active',
       isDeleted: false
-    }).sort({ price: 1 });
+    };
+
+    if (packageId && packageId !== "null" && packageId !== "undefined") {
+      query._id = packageId;
+    } else if (userReferredPackageId && !isAdmin) {
+      // If user has a referred package, only show that one
+      query._id = userReferredPackageId;
+    } else if (!isAdmin) {
+      // Only hide packages for regular users, not admins
+      // Use $ne: true to include packages where isHidden field might be missing (default false)
+      query.isHidden = { $ne: true };
+    }
+
+    const packages = await Package.find(query).sort({ price: 1 });
 
     res.json({
       success: true,
@@ -46,7 +64,7 @@ export const getPackageById = async (req, res) => {
 
 export const createPackage = async (req, res) => {
   try {
-    const { name, description, price, commissionLv1, commissionLv2, features } = req.body;
+    const { name, description, price, commissionLv1, commissionLv2, features, isHidden } = req.body;
 
     const packageData = new Package({
       name,
@@ -54,7 +72,8 @@ export const createPackage = async (req, res) => {
       price,
       commissionLv1,
       commissionLv2,
-      features: features || []
+      features: features || [],
+      isHidden: isHidden || false
     });
 
     await packageData.save();
@@ -84,7 +103,7 @@ export const updatePackage = async (req, res) => {
       });
     }
 
-    const { name, description, price, commissionLv1, commissionLv2, status, features } = req.body;
+    const { name, description, price, commissionLv1, commissionLv2, status, features, isHidden } = req.body;
 
     if (name) packageData.name = name;
     if (description !== undefined) packageData.description = description;
@@ -93,6 +112,7 @@ export const updatePackage = async (req, res) => {
     if (commissionLv2 !== undefined) packageData.commissionLv2 = commissionLv2;
     if (status) packageData.status = status;
     if (features) packageData.features = features;
+    if (isHidden !== undefined) packageData.isHidden = isHidden;
 
     await packageData.save();
 
