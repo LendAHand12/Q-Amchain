@@ -2,7 +2,7 @@ import { Target } from "lucide-react";
 import aboutHero from "@/assets/background/home-3-illustration.png";
 import roadmapBg from "@/assets/background/aff-2.png";
 const RoadmapStage = ({ stage, year, description }) => (
-  <div className="flex flex-col gap-4 max-w-[140px] group">
+  <div className="flex flex-col gap-4 w-full lg:max-w-[140px] group">
     <span className="bg-gradient-to-r from-[#BF1727] to-[#E8494F] bg-clip-text text-transparent font-semibold uppercase tracking-wider text-sm">
       Stage {stage}
     </span>
@@ -26,12 +26,6 @@ export default function About() {
           className="absolute inset-0 opacity-[0.05] pointer-events-none -z-10" 
           style={{ backgroundImage: 'radial-gradient(#ffffff 0.5px, transparent 0.5px)', backgroundSize: '30px 30px' }}
         ></div>
-        
-        {/* Ambient Glows */}
-        <div className="absolute top-1/2 right-0 w-[800px] h-[800px] bg-[#EC3535]/10 blur-[150px] -z-10 rounded-full translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 left-[-302px] w-[1060px] h-[847px] opacity-30 mix-blend-screen -z-10">
-           {/* Decorative light effect area */}
-        </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8 relative z-10">
@@ -55,45 +49,45 @@ export default function About() {
       <section className="py-24 relative bg-[#0C0B0B] overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <section
-            className="relative h-[10vh] lg:h-[30vh] flex items-center justify-center bg-cover bg-center bg-no-repeat"
+            className="relative h-[20vh] lg:h-[30vh] flex items-center justify-center bg-cover bg-center bg-no-repeat mb-12"
             style={{
               backgroundImage: `url(${roadmapBg})`,
-              backgroundPosition: "center 0%",
+              backgroundPosition: "center center",
             }}
           >
             <div className="relative z-10 container px-0 mx-auto">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white text-center leading-tight">
-                <div>ROADMAP</div>
+              <h1 className="text-6xl md:text-7xl lg:text-8xl font-black text-white text-center leading-tight tracking-tighter">
+                ROADMAP
               </h1>
             </div>
           </section>
 
-          <div className="backdrop-blur-[10px] bg-white/5 border border-red-500/20 rounded-[20px] p-8 lg:p-12 overflow-x-auto no-scrollbar">
-            <div className="flex gap-12 lg:gap-16 min-w-max h-full items-start py-4">
+          <div className="backdrop-blur-[10px] bg-white/5 border border-red-500/20 rounded-[32px] p-10 lg:p-16">
+            <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-start lg:items-center py-4">
               <RoadmapStage 
                 stage="1" 
                 year="2026" 
                 description="QAMCHAIN evolution, Q-AMC / Q-HEWE transition framework, validator expansion" 
               />
-              <div className="w-px h-64 bg-gradient-to-b from-transparent via-red-500/50 to-transparent shrink-0"></div>
+              <div className="w-full h-px lg:w-px lg:h-48 bg-gradient-to-r lg:bg-gradient-to-b from-transparent via-red-500/50 to-transparent shrink-0"></div>
               <RoadmapStage 
                 stage="2" 
                 year="2026" 
                 description="QB CURE wallet launch" 
               />
-              <div className="w-px h-64 bg-gradient-to-b from-transparent via-red-500/50 to-transparent shrink-0"></div>
+              <div className="w-full h-px lg:w-px lg:h-48 bg-gradient-to-r lg:bg-gradient-to-b from-transparent via-red-500/50 to-transparent shrink-0"></div>
               <RoadmapStage 
                 stage="3" 
                 year="2027" 
                 description="Q-Phone launch" 
               />
-              <div className="w-px h-64 bg-gradient-to-b from-transparent via-red-500/50 to-transparent shrink-0"></div>
+              <div className="w-full h-px lg:w-px lg:h-48 bg-gradient-to-r lg:bg-gradient-to-b from-transparent via-red-500/50 to-transparent shrink-0"></div>
               <RoadmapStage 
                 stage="4" 
                 year="2027" 
                 description="Q-Meet launch" 
               />
-              <div className="w-px h-64 bg-gradient-to-b from-transparent via-red-500/50 to-transparent shrink-0"></div>
+              <div className="w-full h-px lg:w-px lg:h-48 bg-gradient-to-r lg:bg-gradient-to-b from-transparent via-red-500/50 to-transparent shrink-0"></div>
               <RoadmapStage 
                 stage="5" 
                 year="2027" 
