@@ -6,10 +6,8 @@ import api from "../utils/api";
 import { useAuthStore } from "../store/authStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff } from "lucide-react";
-import registerBackground from "../assets/register-background.png";
-import registerLeftBackground from "../assets/register-left-background.png";
-import AuthFooter from "../components/AuthFooter";
+import { Eye, EyeOff, Mail, Lock, ShieldCheck } from "lucide-react";
+import loginBg from "../assets/background/login.png";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -36,7 +34,6 @@ export default function Login() {
   const onSubmit = async (data) => {
     try {
       const response = await api.post("/auth/login", data);
-
       if (response.data.requires2FA) {
         setRequires2FA(true);
         setTempToken(response.data.tempToken);
@@ -58,7 +55,6 @@ export default function Login() {
         token: twoFAToken,
         tempToken,
       });
-
       const { accessToken, refreshToken, user } = response.data.data;
       setAuth(user, accessToken, refreshToken);
       toast.success("Login successful!");
@@ -68,37 +64,34 @@ export default function Login() {
     }
   };
 
+  const inputClass = "h-[64px] bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:bg-white/10 focus:border-[#EC3535]/50 transition-all font-['Barlow'] px-12";
+
   if (requires2FA) {
     return (
-      <div
-        className="flex min-h-screen bg-center bg-no-repeat bg-cover"
-        style={{ backgroundImage: `url(${registerBackground})` }}
-      >
-        <div className="flex items-center justify-center flex-1 p-8 lg:p-12">
-          <div className="w-full max-w-[654px]">
-            <h1 className="mb-12 text-5xl font-bold text-white">2FA Verification</h1>
-            <div className="bg-gray-800/90 rounded-lg p-8 space-y-6">
-              <p className="text-gray-300 text-center">
-                Enter 6-digit code from Google Authenticator
-              </p>
-              <div className="space-y-2">
-                <Input
-                  type="text"
-                  maxLength="6"
-                  value={twoFAToken}
-                  onChange={(e) => setTwoFAToken(e.target.value)}
-                  placeholder="000000"
-                  className="h-[60px] text-center text-2xl tracking-widest bg-gray-700/50 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                />
-              </div>
-              <Button
-                onClick={verify2FA}
-                disabled={twoFAToken.length !== 6}
-                className="w-full h-[60px] text-base font-medium bg-gray-800/90 hover:bg-gray-700/90 text-white border-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Verify
-              </Button>
+      <div className="relative min-h-screen bg-[#0C0B0B] flex items-center justify-center overflow-hidden font-['Space_Grotesk']">
+        <div className="absolute inset-0 z-0 opacity-40 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${loginBg})` }} />
+        <div className="relative z-10 w-full max-w-[500px] px-6">
+          <h1 className="text-5xl md:text-6xl font-black text-center text-white uppercase tracking-tighter mb-8">2FA</h1>
+          <div className="bg-[#1A1B1D]/80 border border-white/10 backdrop-blur-xl rounded-[32px] p-8 md:p-12 space-y-8">
+            <div className="text-center space-y-2">
+              <ShieldCheck className="w-12 h-12 text-[#EC3535] mx-auto mb-4" />
+              <p className="text-gray-300 text-lg">Enter 6-digit code</p>
             </div>
+            <Input
+              type="text"
+              maxLength="6"
+              value={twoFAToken}
+              onChange={(e) => setTwoFAToken(e.target.value)}
+              placeholder="000000"
+              className="h-[80px] text-center text-4xl font-black tracking-[0.5em] bg-white/5 border-white/10 text-[#EC3535] rounded-2xl focus:border-[#EC3535]/50 transition-all"
+            />
+            <Button
+              onClick={verify2FA}
+              disabled={twoFAToken.length !== 6}
+              className="w-full h-[64px] bg-transparent border-2 border-white/20 hover:border-[#EC3535] text-white uppercase font-black tracking-[0.2em] rounded-xl transition-all duration-300 group"
+            >
+              <span className="group-hover:text-[#EC3535]">Verify</span>
+            </Button>
           </div>
         </div>
       </div>
@@ -106,101 +99,73 @@ export default function Login() {
   }
 
   return (
-    <div
-      className="flex min-h-screen bg-center bg-no-repeat bg-cover"
-      style={{ backgroundImage: `url(${registerBackground})` }}
-    >
-      {/* Left Sidebar */}
-      <div
-        className="hidden lg:flex lg:w-[300px] relative flex-col"
-        style={{ backgroundImage: `url(${registerLeftBackground})` }}
-      ></div>
+    <div className="relative min-h-screen bg-[#0C0B0B] flex items-center justify-center py-20 overflow-hidden font-['Space_Grotesk']">
+      <div className="absolute inset-0 z-0 opacity-40 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${loginBg})` }} />
+      <div className="absolute inset-0 z-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#ffffff 0.5px, transparent 0.5px)', backgroundSize: '40px 40px' }} />
 
-      {/* Right Side - Login Form */}
-      <div className="flex items-center justify-center flex-1 p-8 lg:p-12">
-        <div className="w-full max-w-[654px]">
-          <h1 className="mb-12 text-5xl font-bold text-white">Login</h1>
+      <div className="relative z-10 w-full max-w-[600px] px-6">
+        <h1 className="text-6xl md:text-7xl font-black text-center text-white uppercase tracking-tighter mb-12">Login</h1>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-[27px]" autoComplete="off">
-            {/* Email/User Name */}
-            <div className="space-y-2">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" autoComplete="off">
+          <div className="space-y-4">
+            <div className="relative group">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#EC3535] transition-colors" />
               <Input
-                id="email"
-                type="text"
                 placeholder="Email/User Name"
-                autoComplete="off"
-                className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                {...register("email", { required: "Email or Username is required" })}
+                className={inputClass}
+                {...register("email", { required: "Required" })}
               />
-              {errors.email && <p className="text-sm text-red-400">{errors.email.message}</p>}
+              {errors.email && <p className="text-xs text-red-400 mt-1 ml-4 tracking-wide">{errors.email.message}</p>}
             </div>
 
-            {/* Password */}
-            <div className="space-y-2">
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  autoComplete="new-password"
-                  className="h-[60px] text-base px-[22px] pr-[58px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                  {...register("password", { required: "Password is required" })}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-[18px] top-1/2 -translate-y-1/2 text-accent-red hover:text-accent-red-hover transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
-                </button>
-              </div>
-              {errors.password && <p className="text-sm text-red-400">{errors.password.message}</p>}
-            </div>
-
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="remember"
-                  className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-accent-red focus:ring-2 focus:ring-gray-600"
-                />
-                <label htmlFor="remember" className="text-sm text-gray-300 cursor-pointer">
-                  Remember me
-                </label>
-              </div>
-              <Link
-                to="/forgot-password"
-                className="text-sm text-accent-red hover:text-accent-red-hover transition-colors"
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#EC3535] transition-colors" />
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                className={inputClass}
+                {...register("password", { required: "Required" })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#EC3535] transition-colors"
               >
-                Forgot password?
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+              {errors.password && <p className="text-xs text-red-400 mt-1 ml-4 tracking-wide">{errors.password.message}</p>}
+            </div>
+
+            <div className="flex items-center justify-between px-2">
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <input type="checkbox" className="custom-checkbox w-4 h-4 rounded border-white/10 bg-white/5 accent-[#EC3535]" />
+                <span className="text-sm text-gray-400 group-hover:text-white transition-colors">Remember me</span>
+              </label>
+              <Link to="/forgot-password" size="sm" className="text-sm text-[#EC3535] hover:text-white transition-colors uppercase font-black tracking-widest">
+                Forgot Password?
               </Link>
             </div>
+          </div>
 
-            {/* Submit Button */}
+          <div className="space-y-6 pt-4">
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-[60px] text-base font-medium bg-gray-800/90 hover:bg-gray-700/90 text-white border-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-[64px] bg-transparent border-2 border-white/20 hover:border-[#EC3535] text-white uppercase font-black tracking-[0.2em] rounded-xl transition-all duration-300 group"
             >
-              {isSubmitting ? "Logging in..." : "Confirm"}
+              <span className="group-hover:text-[#EC3535] transition-colors">
+                {isSubmitting ? "Processing..." : "Confirm"}
+              </span>
             </Button>
 
-            {/* Register Link */}
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center justify-center gap-2 text-sm">
               <span className="text-gray-400">Don't have an account?</span>
-              <Link
-                to="/register"
-                className="font-medium transition-colors text-accent-red hover:text-accent-red-hover hover:underline"
-              >
-                Register here
+              <Link to="/register" className="text-white font-black uppercase tracking-widest hover:text-[#EC3535] transition-colors decoration-2 underline-offset-4 hover:underline">
+                Sign Up
               </Link>
             </div>
-          </form>
-
-          {/* Footer */}
-          <AuthFooter />
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   );

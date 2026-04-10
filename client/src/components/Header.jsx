@@ -42,6 +42,10 @@ export default function Header() {
 				<nav className="hidden lg:flex items-center gap-6 h-12">
 					{/* Navigation Links */}
 					<div className="flex items-center gap-6">
+						<Link to="/about" className={`px-1 py-1 text-base font-normal uppercase tracking-wide transition-colors ${isActive("/about") ? "text-[#EC3535]" : "text-white hover:text-[#EC3535]"}`}>
+							About
+						</Link>
+
 						<Link to="/packages" className={`px-1 py-1 text-base font-normal uppercase tracking-wide transition-colors ${isActive("/packages") ? "text-[#EC3535]" : "text-white hover:text-[#EC3535]"}`}>
 							Packages
 						</Link>
@@ -50,9 +54,13 @@ export default function Header() {
 							Affiliate
 						</Link>
 
-						<Link to="/blog" className={`px-1 py-1 text-base font-normal uppercase tracking-wide transition-colors ${isActive("/blog") ? "text-[#EC3535]" : "text-white hover:text-[#EC3535]"}`}>
-							Blog
+						<Link to="/technology" className={`px-1 py-1 text-base font-normal uppercase tracking-wide transition-colors ${isActive("/technology") ? "text-[#EC3535]" : "text-white hover:text-[#EC3535]"}`}>
+							Technology
 						</Link>
+
+						{/* <Link to="/blog" className={`px-1 py-1 text-base font-normal uppercase tracking-wide transition-colors ${isActive("/blog") ? "text-[#EC3535]" : "text-white hover:text-[#EC3535]"}`}>
+							Blog
+						</Link> */}
 
 						<Link to="/faq" className={`px-1 py-1 text-base font-normal uppercase tracking-wide transition-colors ${isActive("/faq") ? "text-[#EC3535]" : "text-white hover:text-[#EC3535]"}`}>
 							FAQ
@@ -63,9 +71,9 @@ export default function Header() {
 					</div>
 
 					{/* Region Icon */}
-					<div className="w-6 h-6 flex items-center justify-center">
+					{/* <div className="w-6 h-6 flex items-center justify-center">
 						<img src={regionIcon} alt="Region" className="w-[18px] h-[18px] object-contain" />
-					</div>
+					</div> */}
 
 					{/* Register Button */}
 					<Button asChild className="bg-gradient-to-r from-[#BF1727] to-[#E8494F] hover:from-[#BF1727]/90 hover:to-[#E8494F]/90 text-white px-4 py-2 rounded-full font-bold text-sm uppercase tracking-wide transition-all duration-200">
@@ -100,6 +108,16 @@ export default function Header() {
 						<div className="flex flex-col p-6 space-y-2 overflow-y-auto h-full pb-20">
 							{/* Navigation Links */}
 							<Link
+								to="/about"
+								className={`px-4 py-4 text-lg font-normal uppercase tracking-wide transition-all duration-300 ease-out rounded-xl transform hover:scale-[1.02] hover:shadow-lg ${
+									isActive("/about") ? "text-[#EC3535] bg-gradient-to-r from-[#EC3535]/20 to-[#EC3535]/10 shadow-md" : "text-white hover:text-[#EC3535] hover:bg-gradient-to-r hover:from-[#EC3535]/10 hover:to-[#EC3535]/5"
+								}`}
+								onClick={closeMobileMenu}
+							>
+								About
+							</Link>
+
+							<Link
 								to="/packages"
 								className={`px-4 py-4 text-lg font-normal uppercase tracking-wide transition-all duration-300 ease-out rounded-xl transform hover:scale-[1.02] hover:shadow-lg ${
 									isActive("/packages") ? "text-[#EC3535] bg-gradient-to-r from-[#EC3535]/20 to-[#EC3535]/10 shadow-md" : "text-white hover:text-[#EC3535] hover:bg-gradient-to-r hover:from-[#EC3535]/10 hover:to-[#EC3535]/5"
@@ -120,12 +138,22 @@ export default function Header() {
 							</Link>
 
 							<Link
+								to="/technology"
+								className={`px-4 py-4 text-lg font-normal uppercase tracking-wide transition-all duration-300 ease-out rounded-xl transform hover:scale-[1.02] hover:shadow-lg ${
+									isActive("/technology") ? "text-[#EC3535] bg-gradient-to-r from-[#EC3535]/20 to-[#EC3535]/10 shadow-md" : "text-white hover:text-[#EC3535] hover:bg-gradient-to-r hover:from-[#EC3535]/10 hover:to-[#EC3535]/5"
+								}`}
+								onClick={closeMobileMenu}
+							>
+								Technology
+							</Link>
+
+							{/* <Link
 								to="/blog"
 								className={`px-4 py-4 text-lg font-normal uppercase tracking-wide transition-all duration-300 ease-out rounded-xl transform hover:scale-[1.02] hover:shadow-lg ${isActive("/blog") ? "text-[#EC3535] bg-gradient-to-r from-[#EC3535]/20 to-[#EC3535]/10 shadow-md" : "text-white hover:text-[#EC3535] hover:bg-gradient-to-r hover:from-[#EC3535]/10 hover:to-[#EC3535]/5"}`}
 								onClick={closeMobileMenu}
 							>
 								Blog
-							</Link>
+							</Link> */}
 
 							<Link
 								to="/faq"
@@ -146,10 +174,10 @@ export default function Header() {
 							<div className="h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent my-4"></div>
 
 							{/* Region Icon */}
-							<div className="flex items-center px-4 py-4 transition-all duration-300 ease-out hover:bg-gradient-to-r hover:from-[#EC3535]/10 hover:to-[#EC3535]/5 rounded-xl transform hover:scale-[1.02]">
+							{/* <div className="flex items-center px-4 py-4 transition-all duration-300 ease-out hover:bg-gradient-to-r hover:from-[#EC3535]/10 hover:to-[#EC3535]/5 rounded-xl transform hover:scale-[1.02]">
 								<img src={regionIcon} alt="Region" className="w-6 h-6 object-contain mr-4" />
 								<span className="text-white text-lg font-medium">Region</span>
-							</div>
+							</div> */}
 
 							{/* Register Button */}
 							<div className="pt-6">

@@ -5,12 +5,9 @@ import toast from "react-hot-toast";
 import api from "../utils/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff } from "lucide-react";
-import registerBackground from "../assets/register-background.png";
-import registerLeftBackground from "../assets/register-left-background.png";
-import AuthFooter from "../components/AuthFooter";
+import { Eye, EyeOff, User, Mail, Smartphone, Lock, Wallet, FileText } from "lucide-react";
+import loginBg from "../assets/background/login.png";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -101,16 +98,9 @@ export default function Register() {
         }
       }
 
-      // Validate username format before submitting
       const cleanedUsername = data.username.toLowerCase().trim();
       if (!/^[a-z0-9]+$/.test(cleanedUsername)) {
-        toast.error(
-          "Username must be lowercase alphanumeric only (a-z, 0-9), no spaces or special characters"
-        );
-        return;
-      }
-      if (cleanedUsername.length < 6 || cleanedUsername.length > 20) {
-        toast.error("Username must be between 6 and 20 characters");
+        toast.error("Username must be lowercase alphanumeric only (a-z, 0-9)");
         return;
       }
 
@@ -127,338 +117,173 @@ export default function Register() {
       };
 
       await api.post("/auth/register", payload);
-      toast.success("Registration successful! Please check your email to verify your account.");
+      toast.success("Registration successful! Please verify your email.");
       navigate("/login");
     } catch (error) {
-      // Handle validation errors from backend
-      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
-        // Find username error first, or show first error
-        const usernameError = error.response.data.errors.find((err) => err.field === "username");
-        if (usernameError) {
-          toast.error(`Username: ${usernameError.message || "Invalid username format"}`);
-        } else {
-          const firstError = error.response.data.errors[0];
-          toast.error(
-            `${
-              firstError.field
-                ? firstError.field.charAt(0).toUpperCase() + firstError.field.slice(1) + ": "
-                : ""
-            }${firstError.message || "Validation failed"}`
-          );
-        }
-      } else {
-        const errorMessage = error.response?.data?.message || "Registration failed";
-        toast.error(errorMessage);
-      }
+      toast.error(error.response?.data?.message || "Registration failed");
     }
   };
 
+  const inputClass = "h-[64px] bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:bg-white/10 focus:border-[#EC3535]/50 transition-all font-['Barlow'] px-12";
+
   return (
-    <div
-      className="flex min-h-screen bg-center bg-no-repeat bg-cover"
-      style={{ backgroundImage: `url(${registerBackground})` }}
-    >
-      {/* Left Sidebar */}
-      <div
-        className="hidden lg:flex lg:w-[300px] relative flex-col"
-        style={{ backgroundImage: `url(${registerLeftBackground})` }}
-      ></div>
+    <div className="relative min-h-screen bg-[#0C0B0B] flex items-center justify-center py-20 overflow-hidden font-['Space_Grotesk']">
+      <div 
+        className="absolute inset-0 z-0 opacity-40 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${loginBg})` }}
+      />
+      <div 
+        className="absolute inset-0 z-0 opacity-[0.05] pointer-events-none" 
+        style={{ backgroundImage: 'radial-gradient(#ffffff 0.5px, transparent 0.5px)', backgroundSize: '40px 40px' }}
+      />
 
-      {/* Right Side - Registration Form */}
-      <div className="flex items-center justify-center flex-1 p-8 lg:p-12">
-        <div className="w-full max-w-[654px]">
-          <h1 className="mb-12 text-5xl font-bold text-white">Sign Up</h1>
+      <div className="relative z-10 w-full max-w-[700px] px-6">
+        <h1 className="text-6xl md:text-7xl font-black text-center text-white uppercase tracking-tighter mb-12">
+          Sign Up
+        </h1>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-[27px]" autoComplete="off">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" autoComplete="off">
+          <div className="space-y-4">
             {/* User Name */}
-            <div className="space-y-2">
+            <div className="relative group">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#EC3535] transition-colors" />
               <Input
-                id="username"
-                type="text"
                 placeholder="User Name"
-                autoComplete="off"
-                className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                {...register("username", {
-                  required: "Username is required",
-                  minLength: {
-                    value: 6,
-                    message: "Username must be at least 6 characters",
-                  },
-                  maxLength: {
-                    value: 20,
-                    message: "Username must be less than 20 characters",
-                  },
-                  pattern: {
-                    value: /^[a-z0-9]+$/,
-                    message:
-                      "Username must be lowercase alphanumeric only (a-z, 0-9), no spaces or special characters",
-                  },
-                  onChange: (e) => {
-                    // Auto convert to lowercase
-                    const value = e.target.value.toLowerCase();
-                    e.target.value = value;
-                  },
-                })}
+                className={inputClass}
+                {...register("username", { required: "Username is required" })}
               />
-              {errors.username && <p className="text-sm text-red-400">{errors.username.message}</p>}
+              {errors.username && <p className="text-xs text-red-400 mt-1 ml-4 tracking-wide">{errors.username.message}</p>}
             </div>
 
             {/* Full Name */}
-            <div className="space-y-2">
+            <div className="relative group">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#EC3535] transition-colors" />
               <Input
-                id="fullName"
-                type="text"
                 placeholder="Full Name"
-                autoComplete="off"
-                className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                {...register("fullName", {
-                  required: "Full name is required",
-                  maxLength: {
-                    value: 100,
-                    message: "Full name must be less than 100 characters",
-                  },
-                })}
+                className={inputClass}
+                {...register("fullName", { required: "Full name is required" })}
               />
-              {errors.fullName && <p className="text-sm text-red-400">{errors.fullName.message}</p>}
+              {errors.fullName && <p className="text-xs text-red-400 mt-1 ml-4 tracking-wide">{errors.fullName.message}</p>}
             </div>
 
             {/* Email */}
-            <div className="space-y-2">
+            <div className="relative group">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#EC3535] transition-colors" />
               <Input
-                id="email"
                 type="email"
                 placeholder="Email"
-                autoComplete="off"
-                className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                className={inputClass}
                 {...register("email", { required: "Email is required" })}
               />
-              {errors.email && <p className="text-sm text-red-400">{errors.email.message}</p>}
+              {errors.email && <p className="text-xs text-red-400 mt-1 ml-4 tracking-wide">{errors.email.message}</p>}
             </div>
 
-            {/* Phone Number and Identity Number - 2 columns */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-[27px]">
-              <div className="space-y-2">
+            {/* Phone & Identity Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="relative group">
+                <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#EC3535] transition-colors" />
                 <Input
-                  id="phoneNumber"
-                  type="tel"
                   placeholder="Phone number"
-                  autoComplete="off"
-                  className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                  {...register("phoneNumber", {
-                    required: "Phone number is required",
-                    maxLength: {
-                      value: 20,
-                      message: "Phone number must be less than 20 characters",
-                    },
-                  })}
+                  className={inputClass}
+                  {...register("phoneNumber", { required: "Phone number is required" })}
                 />
-                {errors.phoneNumber && (
-                  <p className="text-sm text-red-400">{errors.phoneNumber.message}</p>
-                )}
+                {errors.phoneNumber && <p className="text-xs text-red-400 mt-1 ml-4 tracking-wide text-nowrap">{errors.phoneNumber.message}</p>}
               </div>
 
-              <div className="space-y-2">
+              <div className="relative group">
+                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#EC3535] transition-colors" />
                 <Input
-                  id="identityNumber"
-                  type="text"
                   placeholder="ID/DL/Passport"
-                  autoComplete="off"
-                  className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                  {...register("identityNumber", {
-                    required: "Identity number is required",
-                    maxLength: {
-                      value: 50,
-                      message: "Identity number must be less than 50 characters",
-                    },
-                  })}
+                  className={inputClass}
+                  {...register("identityNumber", { required: "Identity number is required" })}
                 />
-                {errors.identityNumber && (
-                  <p className="text-sm text-red-400">{errors.identityNumber.message}</p>
-                )}
+                {errors.identityNumber && <p className="text-xs text-red-400 mt-1 ml-4 tracking-wide text-nowrap">{errors.identityNumber.message}</p>}
               </div>
             </div>
 
             {/* Wallet Address */}
-            <div className="space-y-2">
+            <div className="relative group">
+              <Wallet className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#EC3535] transition-colors" />
               <Input
-                id="walletAddress"
-                type="text"
                 placeholder="Wallet Address"
-                autoComplete="off"
-                className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                {...register("walletAddress", {
-                  required: "Wallet address is required",
-                  pattern: {
-                    value: /^0x[a-fA-F0-9]{40}$/,
-                    message:
-                      "Invalid BEP20 wallet address format (must start with 0x and be 42 characters)",
-                  },
-                })}
+                className={inputClass}
+                {...register("walletAddress", { required: "Wallet address is required" })}
               />
-              {errors.walletAddress && (
-                <p className="text-sm text-red-400">{errors.walletAddress.message}</p>
-              )}
+              {errors.walletAddress && <p className="text-xs text-red-400 mt-1 ml-4 tracking-wide">{errors.walletAddress.message}</p>}
             </div>
 
             {/* Password */}
-            <div className="space-y-2">
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  autoComplete="new-password"
-                  className="h-[60px] text-base px-[22px] pr-[58px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                  {...register("password", {
-                    required: "Password is required",
-                    minLength: {
-                      value: 6,
-                      message: "Password must be at least 6 characters",
-                    },
-                  })}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-[18px] top-1/2 -translate-y-1/2 text-accent-red hover:text-accent-red-hover transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
-                </button>
-              </div>
-              {errors.password && <p className="text-sm text-red-400">{errors.password.message}</p>}
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#EC3535] transition-colors" />
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                className={inputClass}
+                {...register("password", { required: "Password is required" })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#EC3535] transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+              {errors.password && <p className="text-xs text-red-400 mt-1 ml-4 tracking-wide">{errors.password.message}</p>}
             </div>
 
             {/* Confirm Password */}
-            <div className="space-y-2">
-              <div className="relative">
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm Password"
-                  autoComplete="new-password"
-                  className="h-[60px] text-base px-[22px] pr-[58px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                  {...register("confirmPassword", {
-                    required: "Please confirm your password",
-                    validate: (value) => {
-                      const password = watch("password");
-                      return value === password || "Passwords do not match";
-                    },
-                  })}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-[18px] top-1/2 -translate-y-1/2 text-accent-red hover:text-accent-red-hover transition-colors"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="w-6 h-6" />
-                  ) : (
-                    <Eye className="w-6 h-6" />
-                  )}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-400">{errors.confirmPassword.message}</p>
-              )}
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#EC3535] transition-colors" />
+              <Input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm Password"
+                className={inputClass}
+                {...register("confirmPassword", { required: "Please confirm password" })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#EC3535] transition-colors"
+              >
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+              {errors.confirmPassword && <p className="text-xs text-red-400 mt-1 ml-4 tracking-wide">{errors.confirmPassword.message}</p>}
             </div>
 
-            {/* Referrer Code */}
-            <input
-              type="hidden"
-              {...register("referrerCode", {
-                required: "Referrer code is required",
-              })}
-            />
-            {referrerCodeFromUrl && (
-              <div className="space-y-2">
-                <div className="p-3 border border-gray-700 rounded-lg bg-gray-800/50">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-white">
-                      Referred by:{" "}
-                      <Badge variant="default" className="text-white bg-gray-700">
-                        {referrerCodeFromUrl}
-                      </Badge>
-                    </p>
-                    {referrerCodeStatus === "checking" && (
-                      <span className="text-xs text-gray-400">Checking...</span>
-                    )}
-                    {referrerCodeStatus === "valid" && (
-                      <span className="text-xs text-green-400">✓ Valid</span>
-                    )}
-                    {referrerCodeStatus === "invalid" && (
-                      <span className="text-xs text-red-400">✗ Invalid</span>
-                    )}
-                  </div>
-                  {referrerCodeMessage && (
-                    <p
-                      className={`text-xs mt-2 ${
-                        referrerCodeStatus === "valid"
-                          ? "text-green-400"
-                          : referrerCodeStatus === "invalid"
-                          ? "text-red-400"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      {referrerCodeMessage}
-                    </p>
-                  )}
+            {/* Referrer Display */}
+            {(referrerCodeValue || referrerCodeFromUrl) && (
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-[#EC3535] animate-pulse" />
+                  <span className="text-sm font-bold uppercase tracking-widest text-gray-300">
+                    Referred by: <span className="text-white ml-2">{referrerCodeValue || referrerCodeFromUrl}</span>
+                  </span>
                 </div>
+                {referrerCodeStatus === "valid" && <span className="text-[10px] font-black uppercase tracking-tighter text-green-500">✓ Active</span>}
+                {referrerCodeStatus === "invalid" && <span className="text-[10px] font-black uppercase tracking-tighter text-red-500">✗ Invalid</span>}
               </div>
             )}
-            {!referrerCodeFromUrl && (
-              <div className="space-y-2">
-                <Input
-                  id="referrerCode"
-                  type="text"
-                  placeholder="Referrer Code"
-                  autoComplete="off"
-                  className="h-[60px] text-base px-[22px] bg-gray-800/90 border-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                  {...register("referrerCode", {
-                    required: "Referrer code is required",
-                    onChange: (e) => {
-                      setValue("referrerCode", e.target.value.toLowerCase().trim());
-                    },
-                  })}
-                />
-                {referrerCodeStatus === "checking" && (
-                  <p className="text-xs text-gray-400">Checking referrer code...</p>
-                )}
-                {referrerCodeStatus === "valid" && (
-                  <p className="text-xs text-green-400">✓ {referrerCodeMessage}</p>
-                )}
-                {referrerCodeStatus === "invalid" && (
-                  <p className="text-xs text-red-400">✗ {referrerCodeMessage}</p>
-                )}
-                {errors.referrerCode && (
-                  <p className="text-sm text-red-400">{errors.referrerCode.message}</p>
-                )}
-              </div>
-            )}
+          </div>
 
-            {/* Submit Button */}
+          <div className="space-y-6 pt-4">
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-[60px] text-base font-medium bg-gray-800/90 hover:bg-gray-700/90 text-white border-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-[64px] bg-transparent border-2 border-white/20 hover:border-[#EC3535] text-white uppercase font-black tracking-[0.2em] rounded-xl transition-all duration-300 group"
             >
-              {isSubmitting ? "Registering..." : "Confirm"}
+              <span className="group-hover:text-[#EC3535] transition-colors">
+                {isSubmitting ? "Processing..." : "Confirm"}
+              </span>
             </Button>
 
-            {/* Login Link */}
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center justify-center gap-2 text-sm">
               <span className="text-gray-400">Already have an account?</span>
-              <Link
-                to="/login"
-                className="font-medium transition-colors text-accent-red hover:text-accent-red-hover hover:underline"
-              >
+              <Link to="/login" className="text-white font-black uppercase tracking-widest hover:text-[#EC3535] transition-colors decoration-2 underline-offset-4 hover:underline">
                 Login
               </Link>
             </div>
-          </form>
-
-          {/* Footer */}
-          <AuthFooter />
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   );

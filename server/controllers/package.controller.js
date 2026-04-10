@@ -51,6 +51,30 @@ export const getPackages = async (req, res) => {
   }
 };
 
+// New function for public packages page - strictly active, visible and not deleted
+export const getActivePackages = async (req, res) => {
+  try {
+    const query = {
+      status: 'active',
+      isDeleted: false,
+      isHidden: false
+    };
+
+    const packages = await Package.find(query).sort({ price: 1 });
+
+    res.json({
+      success: true,
+      data: packages
+    });
+  } catch (error) {
+    console.error('Get active packages error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get active packages'
+    });
+  }
+};
+
 export const getPackageById = async (req, res) => {
   try {
     const packageData = await Package.findById(req.params.id);

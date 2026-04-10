@@ -6,6 +6,7 @@ import { checkPermission } from "../middleware/permission.middleware.js";
 const router = express.Router();
 
 // Public routes
+router.get("/active", packageController.getActivePackages);
 router.get("/", authenticateOptional, packageController.getPackages);
 router.get("/:id", packageController.getPackageById);
 

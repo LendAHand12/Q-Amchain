@@ -12,113 +12,74 @@ import youtubeIcon from "@/assets/icons/youtube.svg";
 
 export default function Footer() {
 	return (
-		<footer className="bg-[#0C0B0B] text-white py-12 sm:py-16">
+		<footer className="bg-[#0C0B0B] text-white pt-24 pb-12 border-t border-white/5">
 			<div className="container mx-auto px-4 sm:px-6 lg:px-8">
-				<div className="flex flex-col lg:flex-row gap-8 lg:gap-16 xl:gap-20">
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
 					{/* Left Section - Logo and Contact */}
-					<div className="flex flex-col gap-5 lg:flex-shrink-0 lg:max-w-md">
-						{/* Logo */}
-						<div className="flex items-center gap-3">
-							<img src={logo} alt="Q-Amchain" className="h-8 w-auto" />
-						</div>
-
-						{/* Description */}
-						<div className="max-w-full lg:max-w-[471px]">
-							<p className="text-[#E9E9E9] text-sm leading-6 font-normal">Validator packages and affiliate platform</p>
+					<div className="lg:col-span-2 space-y-8">
+						<div className="space-y-4">
+							<div className="flex items-center gap-3">
+								<img src={logo} alt="Ameritec" className="h-10 w-auto" />
+							</div>
+							<p className="text-gray-400 text-sm font-medium tracking-tight">Validator packages and affiliate platform</p>
 						</div>
 
 						{/* Contact Info */}
-						<div className="flex items-center gap-1.5">
-							<div className="w-5 h-5 flex-shrink-0">
-								<img src={emailIcon} alt="Email" className="w-full h-full" />
+						<div className="flex items-center gap-3 group cursor-pointer">
+							<div className="w-6 h-6 flex-shrink-0">
+								<img src={emailIcon} alt="Email" className="w-full h-full opacity-60 group-hover:opacity-100 transition-opacity" />
 							</div>
-							<div className="px-1">
-								<span className="text-[#E9E9E9] text-sm leading-6 font-normal">support@ameritecps.com</span>
-							</div>
+							<span className="text-gray-400 text-sm font-medium group-hover:text-white transition-colors tracking-tight">support@ameritecps.com</span>
 						</div>
 
 						{/* Social Media Icons */}
-						<div className="flex flex-wrap gap-2.5">
-							{/* TikTok */}
-							<div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-[#EC3535] transition-colors cursor-pointer">
-								<img src={tiktokIcon} alt="TikTok" className="w-[13px] h-[15px]" />
-							</div>
-
-							{/* Telegram */}
-							<div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-[#EC3535] transition-colors cursor-pointer">
-								<img src={telegramIcon} alt="Telegram" className="w-[15px] h-[10px]" />
-							</div>
-
-							{/* Twitter */}
-							<div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-[#EC3535] transition-colors cursor-pointer">
-								<img src={twitterIcon} alt="Twitter" className="w-[20px] h-[20px]" />
-							</div>
-
-							{/* Medium */}
-							<div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-[#EC3535] transition-colors cursor-pointer">
-								<img src={mediumIcon} alt="Medium" className="w-[17px] h-[13px]" />
-							</div>
-
-							{/* LinkedIn */}
-							<div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-[#EC3535] transition-colors cursor-pointer">
-								<img src={linkedinIcon} alt="LinkedIn" className="w-[16px] h-[13px]" />
-							</div>
-
-							{/* Facebook */}
-							<div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-[#EC3535] transition-colors cursor-pointer">
-								<img src={facebookIcon} alt="Facebook" className="w-[16px] h-[13px]" />
-							</div>
-
-							{/* Discord */}
-							<div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-[#EC3535] transition-colors cursor-pointer">
-								<img src={discordIcon} alt="Discord" className="w-[16px] h-[13px]" />
-							</div>
-
-							{/* YouTube */}
-							<div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-[#EC3535] transition-colors cursor-pointer">
-								<img src={youtubeIcon} alt="YouTube" className="w-[16px] h-[13px]" />
-							</div>
+						<div className="flex flex-wrap gap-3">
+							{[
+								{ icon: tiktokIcon, alt: "TikTok" },
+								{ icon: telegramIcon, alt: "Telegram" },
+								{ icon: twitterIcon, alt: "Twitter" },
+								{ icon: mediumIcon, alt: "Medium" },
+								{ icon: linkedinIcon, alt: "LinkedIn" },
+								{ icon: facebookIcon, alt: "Facebook" },
+								{ icon: discordIcon, alt: "Discord" },
+								{ icon: youtubeIcon, alt: "YouTube" }
+							].map((social, idx) => (
+								<div key={idx} className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center hover:bg-[#EC3535]/10 group transition-all duration-300 cursor-pointer border border-white/5 hover:border-[#EC3535]/30">
+									<img src={social.icon} alt={social.alt} className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all filter brightness-0 invert" />
+								</div>
+							))}
 						</div>
 					</div>
 
-					{/* Right Section - Links */}
-					<div className="flex flex-col sm:flex-row gap-8 sm:gap-12 lg:gap-16 flex-1">
-						{/* Quick Links */}
-						<div className="flex flex-col gap-5 flex-1">
-							<h4 className="text-white text-base font-normal uppercase leading-6">Quick Links</h4>
-							<div className="flex flex-col gap-0">
-								<Link to="/packages" className="text-white text-sm font-normal leading-8 hover:text-[#EC3535] transition-colors">
-									Packages
-								</Link>
-								<Link to="/affiliate" className="text-white text-sm font-normal leading-8 hover:text-[#EC3535] transition-colors">
-									Affiliate
-								</Link>
-								<Link to="/blog" className="text-white text-sm font-normal leading-8 hover:text-[#EC3535] transition-colors">
-									Blog
-								</Link>
-							</div>
+					{/* Middle Section - Quick Links */}
+					<div className="space-y-8 lg:pl-10">
+						<h4 className="text-white text-sm font-black uppercase tracking-[0.2em]">Quick Links</h4>
+						<div className="flex flex-col gap-4">
+							<Link to="/packages" className="text-gray-400 text-sm font-medium hover:text-white transition-colors">Packages</Link>
+							<Link to="/affiliate" className="text-gray-400 text-sm font-medium hover:text-white transition-colors">Affiliate</Link>
+							<Link to="/blog" className="text-gray-400 text-sm font-medium hover:text-white transition-colors">Blog</Link>
 						</div>
+					</div>
 
-						{/* Support */}
-						<div className="flex flex-col gap-5 flex-1">
-							<h4 className="text-white text-base font-normal uppercase leading-6">Support</h4>
-							<div className="flex flex-col gap-0">
-								<Link to="/faq" className="text-white text-sm font-normal leading-8 hover:text-[#EC3535] transition-colors">
-									FAQ
-								</Link>
-								<Link to="/about" className="text-white text-sm font-normal leading-8 hover:text-[#EC3535] transition-colors">
-									About Us
-								</Link>
-							</div>
+					{/* Right Section - Support */}
+					<div className="space-y-8">
+						<h4 className="text-white text-sm font-black uppercase tracking-[0.2em]">Support</h4>
+						<div className="flex flex-col gap-4">
+							<Link to="/faq" className="text-gray-400 text-sm font-medium hover:text-white transition-colors">FAQ</Link>
+							<Link to="/about" className="text-gray-400 text-sm font-medium hover:text-white transition-colors">About Us</Link>
 						</div>
 					</div>
 				</div>
 
-				{/* Divider Line */}
-				<div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-white/10">
-					<div className="text-center">
-						<p className="text-[#E9E9E9] text-sm">© 2024 Q-Amchain. All rights reserved.</p>
-					</div>
+				{/* Bottom Section - Disclosures */}
+				<div className="mt-20 pt-10 border-t border-white/5 space-y-4">
+					<p className="text-gray-500 text-xs font-bold uppercase tracking-widest">
+						© QAMCHAIN. Built by Ameritec IPS (Texas, USA).
+					</p>
+					<p className="text-gray-600 text-[11px] leading-relaxed max-w-3xl">
+						Disclosures: QAMCHAIN Validator Licenses are platform-issued participation rights. 
+						Nothing on this website is investment, legal, or tax advice. Terms apply.
+					</p>
 				</div>
 			</div>
 		</footer>

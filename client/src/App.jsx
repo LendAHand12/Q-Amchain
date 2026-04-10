@@ -13,6 +13,7 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
+import Technology from "./pages/Technology";
 import AdminLogin from "./pages/admin/Login";
 
 // Protected pages
@@ -47,22 +48,21 @@ function App() {
     <Router>
       <Toaster position="top-right" />
       <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/" element={<Layout />}>
-          <Route path="about" element={<About />} />
-          <Route path="packages" element={<Packages />} />
-          <Route path="affiliate" element={<Affiliate />} />
-          <Route path="blog" element={<Blog />} />
-          <Route path="faq" element={<FAQ />} />
-          <Route path="verify-email" element={<VerifyEmail />} />
+        {/* Public routes wrapped in Layout */}
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/technology" element={<Technology />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/packages" element={<Packages />} />
+          <Route path="/affiliate" element={<Affiliate />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
         </Route>
-
-        {/* Login and Register pages without Layout (no header/footer) */}
-        <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
-        <Route path="forgot-password" element={<ForgotPassword />} />
-        <Route path="reset-password" element={<ResetPassword />} />
 
         {/* Protected user routes */}
         <Route
